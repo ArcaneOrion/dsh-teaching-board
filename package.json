@@ -1,7 +1,6 @@
 {
   "name": "@arcaneorion/dsh-stage-panel",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -9,11 +8,35 @@
     "./client": "./src/client.js",
     "./package.json": "./package.json"
   },
-  "dependencies": {
-    "@deepseek-ai/dsh-tools": "^0.1.1-rc.2"
+  "description": "DSH in-session panel view: project agent-generated self-contained HTML into a sandboxed iframe, with status bar and choice interactions delivered as real user messages.",
+  "license": "MIT",
+  "author": "arcanexis",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arcanexis/dsh-stage-panel.git"
+  },
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "ui",
+    "panel",
+    "iframe"
+  ],
+  "files": [
+    "src",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/dsh-tools": ">=0.1.1-rc.2"
   },
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
-    "client": { "inject": [], "platform": "web" }
+    "client": { "inject": ["slots"], "platform": "web" }
   }
 }
