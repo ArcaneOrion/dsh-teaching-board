@@ -1,6 +1,6 @@
 {
-  "name": "@arcaneorion/dsh-stage-panel",
-  "version": "0.1.0",
+  "name": "@arcaneorion/dsh-teaching-board",
+  "version": "0.2.0",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -8,7 +8,7 @@
     "./client": "./src/client.js",
     "./package.json": "./package.json"
   },
-  "description": "DSH in-session panel view: project agent-generated self-contained HTML into a sandboxed iframe, with status bar and choice interactions delivered as real user messages.",
+  "description": "DSH teaching surface: project agent-generated self-contained HTML into a sandboxed in-session board with handwriting annotation and a built-in screenshot that returns to the conversation as a real user message.",
   "license": "MIT",
   "author": "arcanexis",
   "repository": {
@@ -20,6 +20,10 @@
     "harness",
     "dsh",
     "dsh-plugin",
+    "teaching",
+    "whiteboard",
+    "annotation",
+    "screenshot",
     "ui",
     "panel",
     "iframe"

@@ -1,5 +1,5 @@
-# Stage Panel bundle row: 「面板」视图 + stage_* 工具（能力层，profile 级）。
+# 教学平面 bundle row: 板书视图（勾画 / 截图）+ stage_* 工具（能力层，profile 级）。
 # 行为层 = preset arcane-stage-panel（模式纪律与内容规范）。
 - insert:
-    - id: stage-panel
-      name: '@arcaneorion/dsh-stage-panel'
+    - id: teaching-board
+      name: '@arcaneorion/dsh-teaching-board'
