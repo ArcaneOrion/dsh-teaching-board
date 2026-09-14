@@ -20,7 +20,7 @@
 window.__ModuleLoader__.load({
   id: '@arcaneorion/dsh-teaching-board',
   factory: (require) => {
-    const { createElement, useEffect, useMemo, useRef, useState } = require('react')
+    const { createElement, useEffect, useRef, useState } = require('react')
 
     const CSS = `
 .stgp-root { display: flex; flex-direction: column; height: 100%; min-height: 0; }
@@ -95,7 +95,7 @@ window.__ModuleLoader__.load({
     for (var i = 0; i < strokes.length; i++) paintStroke(strokes[i]);
     if (cur) paintStroke(cur);
   }
-  function count() { send({ __stagePanel: true, type: 'ink', strokes: strokes.length }); }
+  function count() { send({ __stagePanel: true, type: 'ink', strokes: strokes.length, data: strokes }); }
 
   cv.addEventListener('pointerdown', function (e) {
     if (P.mode === 'off') return;
@@ -209,9 +209,27 @@ window.__ModuleLoader__.load({
       count();
     } else if (d.cmd === 'capture') {
       capture({ auto: d.auto === true, requestId: d.requestId || null });
+    } else if (d.cmd === 'load') {
+      // 同一块板的演进：把父层保存的笔迹重新注入新板。
+      strokes = Array.isArray(d.strokes) ? d.strokes : [];
+      redraw();
+      count();
+      if (typeof d.scrollY === 'number' && d.scrollY > 0) {
+        try { window.scrollTo(0, d.scrollY); } catch (e) {}
+      }
     } else if (d.cmd === 'ping') {
       send({ __stagePanel: true, type: 'ready' });
     }
+  });
+
+  // 把滚动位置报给父层，换板后用来还原（学生正在看的那一段不该跳回顶部）。
+  var scrollTimer = null;
+  window.addEventListener('scroll', function () {
+    if (scrollTimer) return;
+    scrollTimer = setTimeout(function () {
+      scrollTimer = null;
+      send({ __stagePanel: true, type: 'scroll', y: window.scrollY || 0 });
+    }, 120);
   });
 
   window.addEventListener('resize', fit);
@@ -228,6 +246,97 @@ window.__ModuleLoader__.load({
       if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, tag + '</body>')
       if (/<\/html>/i.test(html)) return html.replace(/<\/html>/i, tag + '</html>')
       return html + tag
+    }
+
+    // ── 板面合成：一块板 = 会话日志里同一 board id 的那串调用折叠出来的 ──────
+    // 投影 = 快照的函数，这条设计在这里也没有例外：不存客户端状态，op 序列就是板的全部真相。
+    const SHELL_HEAD = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">'
+      + '<meta name="viewport" content="width=device-width, initial-scale=1">'
+      + '<style>:root{--ink:#1f2937;--muted:#6b7280;--dim:#9ca3af;--line:#e5e7eb;--brand:#2f6feb;--soft:#f7f8fa}'
+      + '*{box-sizing:border-box}body{margin:0;background:var(--soft);color:var(--ink);'
+      + 'font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}'
+      + '.stg-block{max-width:920px;margin:0 auto;padding:18px 24px 30px;background:#fff;'
+      + 'border-bottom:1px solid var(--line)}'
+      + '.stg-block:first-child{padding-top:24px}'
+      + '.stg-block h2{font-size:14px;margin:0 0 10px;color:var(--muted);letter-spacing:.4px}'
+      + '.stg-block table{width:100%;border-collapse:collapse;font-size:13.5px}'
+      + '.stg-block th,.stg-block td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}'
+      + '</style></head><body>'
+    const SHELL_TAIL = '</body></html>'
+
+    function isDocument(html) {
+      return /<html[\s>]/i.test(html) || /<!doctype/i.test(html)
+    }
+
+    function wrapBlock(frag, region) {
+      const attr = region ? ' data-stage-region="' + String(region).replace(/"/g, '') + '"' : ''
+      return '\n<section class="stg-block"' + attr + '>\n' + frag + '\n</section>\n'
+    }
+
+    function ensureDocument(html) {
+      if (isDocument(html)) return html
+      return SHELL_HEAD + wrapBlock(html, null) + SHELL_TAIL
+    }
+
+    function appendFragment(html, frag, region) {
+      const block = wrapBlock(frag, region)
+      if (/<\/body>/i.test(html)) return html.replace(/<\/body>/i, block + '</body>')
+      return html + block
+    }
+
+    /** op=set/remove：用父页面自己的 DOMParser 定位 data-stage-region，改完序列化回字符串。 */
+    function patchRegion(html, region, frag) {
+      if (typeof region !== 'string' || region === '') return html
+      try {
+        const doc = new DOMParser().parseFromString(ensureDocument(html), 'text/html')
+        const node = doc.querySelector('[data-stage-region="' + region.replace(/"/g, '') + '"]')
+        if (!node) return frag === null ? html : appendFragment(html, frag, region)
+        if (frag === null) {
+          node.parentNode.removeChild(node)
+        } else if (frag.trimStart().slice(0, 1) === '<' && node.tagName === 'SECTION') {
+          node.innerHTML = frag
+        } else {
+          node.innerHTML = frag
+        }
+        return '<!DOCTYPE html>' + doc.documentElement.outerHTML
+      } catch {
+        return html
+      }
+    }
+
+    /** 把同一 board id 的 stage_panel 调用按顺序折叠成一块板的 HTML。 */
+    function composeBoard(calls) {
+      if (!Array.isArray(calls) || calls.length === 0) return null
+      const last = calls[calls.length - 1]
+      const boardId = typeof last.board === 'string' && last.board !== '' ? last.board : null
+      const list = boardId === null
+        ? [last]
+        : calls.filter((c) => typeof c.board === 'string' && c.board === boardId)
+      if (list.length === 0) return null
+
+      let html = null
+      let title = null
+      for (const call of list) {
+        const op = typeof call.op === 'string' && call.op !== '' ? call.op : (html === null ? 'open' : 'append')
+        const frag = typeof call.html === 'string' ? call.html : null
+        const region = typeof call.region === 'string' && call.region !== '' ? call.region : null
+        if (typeof call.title === 'string' && call.title !== '') title = call.title
+        if (op === 'open') {
+          if (frag !== null) html = frag
+          continue
+        }
+        if (html === null) {
+          html = frag === null ? null : frag
+          continue
+        }
+        if (op === 'append') {
+          if (frag !== null) html = appendFragment(html, frag, region)
+        } else if (op === 'set' || op === 'remove') {
+          html = patchRegion(html, region, op === 'set' ? frag : null)
+        }
+      }
+      if (html === null) return null
+      return { board: boardId, title, html: ensureDocument(html) }
     }
 
     function parseArgs(raw) {
@@ -262,7 +371,7 @@ window.__ModuleLoader__.load({
       function StagePanelView(props) {
         const { useSession, useInput, inputActions } = props
         const latest = useSession((snapshot) => {
-          let panel = null
+          const panels = []
           let status = null
           let choice = null
           let snapReq = null
@@ -279,27 +388,41 @@ window.__ModuleLoader__.load({
               }
             }
             if (node.kind !== 'tool-result' || !call) continue
-            if (call.name === 'stage_panel') panel = parseArgs(call.argsRaw)
-            else if (call.name === 'stage_status') status = parseArgs(call.argsRaw)
+            if (call.name === 'stage_panel') {
+              const args = parseArgs(call.argsRaw)
+              if (args) panels.push(args)
+            } else if (call.name === 'stage_status') status = parseArgs(call.argsRaw)
             else if (call.name === 'stage_choice') choice = parseArgs(call.argsRaw)
           }
-          return { panel, status, choice, snapReq }
+          return { panels, status, choice, snapReq }
         })
 
         const frameRef = useRef(null)
         const handledRef = useRef(new Set())
         const warnedRef = useRef(new Set())
         const toolRef = useRef({ mode: 'off', color: COLORS[0], size: 3 })
+        const boardsRef = useRef(new Map())   // boardId -> { strokes, scrollY }
+        const boardIdRef = useRef(null)
+        // 新 iframe 载入时，runtime 会先报一次空笔迹（初始 count）；那一条必须丢掉，
+        // 否则它会在 ready 触发的“还笔迹”之前把存下来的笔迹冲掉。
+        const awaitingReadyRef = useRef(true)
+        const lastDocRef = useRef(null)
         const [tool, setTool] = useState(toolRef.current)
         const [strokes, setStrokes] = useState(0)
         const [toast, setToast] = useState('')
 
         const status = latest.status || null
         const choice = latest.choice || null
-        const panel = latest.panel || null
         const options = choice && Array.isArray(choice.options) ? choice.options : []
-        const html = panel && typeof panel.html === 'string' ? panel.html : null
-        const srcDoc = useMemo(() => (html === null ? null : injectRuntime(html)), [html])
+        const composed = composeBoard(latest.panels)
+        const boardId = composed ? composed.board : null
+        boardIdRef.current = boardId
+        const srcDoc = composed === null ? null : injectRuntime(composed.html)
+        const boardTitle = (composed && composed.title) || (status && status.title) || '教学平面'
+        if (lastDocRef.current !== srcDoc) {
+          lastDocRef.current = srcDoc
+          awaitingReadyRef.current = true
+        }
 
         // 输入框是否空闲。agent 主动截图只在空闲时替用户提交——否则会把人家正在写的
         // 草稿一起发出去。hook 必须在组件顶层调用，结果存进 ref 供消息监听器
@@ -402,13 +525,32 @@ window.__ModuleLoader__.load({
                   flash('截图失败：' + (d.error || '未知原因'))
                 }
               } else if (d.type === 'ink') {
+                if (awaitingReadyRef.current) return   // 初始空笔迹：丢掉，等 ready 还笔迹
                 setStrokes(Number(d.strokes) || 0)
+                const id = boardIdRef.current
+                if (id && Array.isArray(d.data)) {
+                  const rec = boardsRef.current.get(id) || { strokes: [], scrollY: 0 }
+                  rec.strokes = d.data
+                  boardsRef.current.set(id, rec)
+                }
+              } else if (d.type === 'scroll') {
+                const id = boardIdRef.current
+                if (id) {
+                  const rec = boardsRef.current.get(id) || { strokes: [], scrollY: 0 }
+                  rec.scrollY = Number(d.y) || 0
+                  boardsRef.current.set(id, rec)
+                }
               } else if (d.type === 'ready') {
-                // iframe 刚载入：把当前工具状态推回去（用 ref 避免闭包过期）。
+                awaitingReadyRef.current = false
+                // iframe 刚载入：把当前工具状态推回去（用 ref 避免闭包过期），
+                // 并把这块板之前存下的笔迹与滚动位置还回去。
                 const t = toolRef.current
                 post({ cmd: 'mode', value: t.mode })
                 post({ cmd: 'color', value: t.color })
                 post({ cmd: 'size', value: t.size })
+                const id = boardIdRef.current
+                const rec = id ? boardsRef.current.get(id) : null
+                post({ cmd: 'load', strokes: (rec && rec.strokes) || [], scrollY: (rec && rec.scrollY) || 0 })
               }
               return
             }
@@ -485,7 +627,7 @@ window.__ModuleLoader__.load({
                   ref: frameRef,
                   className: 'stgp-frame',
                   sandbox: 'allow-scripts',
-                  title: (panel && panel.title) || 'stage panel',
+                  title: boardTitle,
                   srcDoc,
                 })
               : createElement('div', { className: 'stgp-empty' }, '暂无板书 —— 让 agent 调用 stage_panel 渲染一个'),

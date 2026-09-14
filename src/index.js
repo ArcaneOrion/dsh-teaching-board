@@ -23,22 +23,46 @@ export function apply(ctx) {
   ctx.tools.register(defineTool({
     name: 'stage_panel',
     description:
-      '把一份 self-contained HTML 投影到会话「教学平面」（面板视图，沙箱 iframe 渲染）。'
-      + '先用完整 HTML（内联 CSS/JS、data: 资源，不依赖外网）调用本工具；随后正常回复即可，用户会在「教学平面」页签看见板书。'
-      + '面板内纯本地交互（筛选/tab/滑块等）不打扰对话；需要用户在方向上做选择时另用 stage_choice。'
-      + '用户可以在面板上直接圈画并用「截图」把画面变成图片发回本会话（见 stage_snapshot）。'
-      + '若面板内含 postMessage 回传（{type:"panel_input",text}），用户发送的内容会以用户消息到达本会话。',
+      '在教学平面（「教学平面」页签，沙箱 iframe）上写板书。'
+      + '一块板 = 一个主题/一节课：用同一个 board id 连续调用很多次都算「同一块板在演进」，'
+      + '学生的圈画笔迹与滚动位置会保留；换 board id 才是换新板（新板 = 新主题）。'
+      + '更新方式用 op 选择：append（默认，在板尾再写一段，最省 token）/ open（开板或整块重写）/ '
+      + 'set（替换 HTML 里 data-stage-region="名称" 的那块）/ remove（擦掉某块）。'
+      + '所以「再写一段」不要重发整块 HTML——那会丢掉学生笔迹、把滚动顶回去，也白烧 token。'
+      + '面板 HTML 必须 self-contained（内联 CSS/JS、data: 资源，不依赖外网）；公式用 MathML（浏览器原生，零依赖）。'
+      + '面板内纯本地交互（筛选/tab/滑块等）不打扰对话；需要用户在方向上做选择时另用 stage_choice；'
+      + '要看学生圈了什么用 stage_snapshot。',
     parameters: {
-      html: { type: 'string', required: true, description: '完整 self-contained HTML 文档字符串' },
-      title: { type: 'string', description: '面板标题（显示在状态条）' },
+      html: { type: 'string', description: '本次写入板面的 HTML（op=open/append/set 必需；可为完整文档，也可为片段）' },
+      board: { type: 'string', description: '板面 id（如 "stats-se5"）。同一 id 的多次调用 = 同一块板的连续演进。省略 = 一次性整块替换，不保留笔迹。' },
+      op: { type: 'string', description: 'open=开板/整块替换；append=在板尾追加（默认）；set=替换某个 data-stage-region 区域；remove=移除该区域。' },
+      region: { type: 'string', description: 'op=set/remove 时的区域名，对应 HTML 里的 data-stage-region="名称"。' },
+      title: { type: 'string', description: '板面标题（显示在状态条）' },
     },
     output: { schema: { type: 'string' }, render: textRender },
-    execute: async (args) => JSON.stringify({
-      ok: true,
-      rendered: true,
-      title: typeof args.title === 'string' ? args.title : null,
-      note: '请结束本轮回复；教学平面视图会从本次调用渲染。',
-    }),
+    execute: async (args) => {
+      const op = typeof args.op === 'string' && args.op !== '' ? args.op : 'append'
+      const board = typeof args.board === 'string' && args.board !== '' ? args.board : null
+      const region = typeof args.region === 'string' && args.region !== '' ? args.region : null
+      const html = typeof args.html === 'string' ? args.html : null
+      if (html === null && op !== 'remove') {
+        return JSON.stringify({ ok: false, error: `op=${op} 需要 html` })
+      }
+      if ((op === 'set' || op === 'remove') && region === null) {
+        return JSON.stringify({ ok: false, error: `op=${op} 需要 region` })
+      }
+      return JSON.stringify({
+        ok: true,
+        rendered: true,
+        board: board === null ? '(一次性板面)' : board,
+        op,
+        region,
+        title: typeof args.title === 'string' ? args.title : null,
+        note: board === null
+          ? '未给 board：一次性整块替换，学生笔迹会被清掉。同一主题的演进请带上 board id。'
+          : '请结束本轮回复；教学平面按这个 op 更新，学生笔迹保留。',
+      })
+    },
   }))
 
   ctx.tools.register(defineTool({
