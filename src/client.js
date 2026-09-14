@@ -301,6 +301,16 @@ window.__ModuleLoader__.load({
         const html = panel && typeof panel.html === 'string' ? panel.html : null
         const srcDoc = useMemo(() => (html === null ? null : injectRuntime(html)), [html])
 
+        // 输入框是否空闲。agent 主动截图只在空闲时替用户提交——否则会把人家正在写的
+        // 草稿一起发出去。hook 必须在组件顶层调用，结果存进 ref 供消息监听器
+        // （那个闭包早于后续渲染）读到最新值。
+        const useInputSafe = typeof useInput === 'function' ? useInput : null
+        const idleNow = useInputSafe
+          ? useInputSafe((s) => s.draft === '' && (Array.isArray(s.imageIds) ? s.imageIds.length === 0 : true))
+          : true
+        const idleRef = useRef(true)
+        idleRef.current = idleNow !== false
+
         const send = (text) => {
           try {
             if (inputActions) {
@@ -354,10 +364,13 @@ window.__ModuleLoader__.load({
             try { accepted = inputActions.addImages(ids) } catch { accepted = false }
             if (accepted) {
               if (auto) {
+                if (!idleRef.current) {
+                  // 用户正在写东西：只放入口，不替他按回车。
+                  flash('agent 请求了这个板面的截图：已放入输入框（你正在输入，没有自动发送）')
+                  return
+                }
                 try {
-                  // 不覆盖用户正在写的草稿：只在空草稿时补上说明。
-                  const draft = typeof useInput === 'function' ? useInput((s) => s.draft) : ''
-                  if (note && !draft) inputActions.setDraft(note)
+                  if (note) inputActions.setDraft(note)
                   inputActions.submit()
                   flash('已把面板截图发回会话')
                 } catch {
