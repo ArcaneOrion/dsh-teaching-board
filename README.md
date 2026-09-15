@@ -16,10 +16,9 @@ dsh plugin --profile web add @arcaneorion/dsh-teaching-board
 它是一个 **profile 级 bundle**：装一次，这个进程里所有会话都拿得到 `stage_*` 工具与「教学平面」页签。
 （`dsh plugin add` 会把依赖与 bundles 条目一起写进该 profile 的 manifest。）
 
-> **发布状态**：截至 2026-09-15，新名 `@arcaneorion/dsh-teaching-board` **尚未发布到 npm**（registry 404），
-> 上面这条命令要等发布后才可用；在此之前请走本地 `link:` 挂载。
-> 线上仍在的是改名前的 `@arcaneorion/dsh-stage-panel@0.1.0`——老名字别再用，它对应本仓早期 192 行的版本，
-> 与当前 0.4.0 不是一回事，装它只会拿到残缺面板。
+> **发布状态**：`@arcaneorion/dsh-teaching-board` 已发布（`0.4.0` 于 2026-09-15 10:17 CST 上线，当前 `0.4.1`）。
+> 改名前的 `@arcaneorion/dsh-stage-panel@0.1.0` 仍在 registry 上，对应本仓早期版本——**别再用**，
+> 装它只会拿到残缺面板（`npm deprecate @arcaneorion/dsh-stage-panel "renamed to @arcaneorion/dsh-teaching-board"` 可让老名字自己说明去向）。
 
 ## 兼容性（DSH 版本）
 
