@@ -16,6 +16,25 @@ dsh plugin --profile web add @arcaneorion/dsh-teaching-board
 它是一个 **profile 级 bundle**：装一次，这个进程里所有会话都拿得到 `stage_*` 工具与「教学平面」页签。
 （`dsh plugin add` 会把依赖与 bundles 条目一起写进该 profile 的 manifest。）
 
+> **发布状态**：截至 2026-09-15，新名 `@arcaneorion/dsh-teaching-board` **尚未发布到 npm**（registry 404），
+> 上面这条命令要等发布后才可用；在此之前请走本地 `link:` 挂载。
+> 线上仍在的是改名前的 `@arcaneorion/dsh-stage-panel@0.1.0`——老名字别再用，它对应本仓早期 192 行的版本，
+> 与当前 0.4.0 不是一回事，装它只会拿到残缺面板。
+
+## 兼容性（DSH 版本）
+
+本包在 **DSH `0.1.1-rc.2`**（`dsh --version`）上开发与实测，宿主侧依赖按该版本**精确钉住**：
+
+| 宿主包 | 声明 | 用途 |
+|---|---|---|
+| `@deepseek-ai/dsh-tools` | `>=0.1.1-rc.2` | `defineTool` 注册 `stage_*` 四个工具 |
+| `@deepseek-ai/dsh-client-ui-conversation` | `0.1.1-rc.2` | `conversation.view` 座位（视图 id `stage-panel`，order 40） |
+| `@deepseek-ai/cordis` | `^4.0.2` | 插件生命周期 |
+| `react` | `^18.3.1` | client 半 `require('react')` |
+
+**换 DSH 版本（例如 `0.1.2-rc.1`）必须先重新验证、再放宽 peer**：座位契约与会话快照结构跨版本会变，
+精确钉住的 peer 会在安装时报冲突，好过装上去静默失效。
+
 ## 能力
 
 | 能力 | 实现位置 | 说明 |
