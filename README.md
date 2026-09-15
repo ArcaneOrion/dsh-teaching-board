@@ -6,6 +6,16 @@ DSH 会话内的**教学平面**：把 agent 生成的 self-contained HTML 投�
 **单一数据流**：面板 = 会话快照的投影，无私有状态、无 RPC、无 wait 闸门。
 用户的每一次推进（点选、发图）都是**真实用户消息**。
 
+## 安装
+
+```bash
+dsh plugin --profile web add @arcaneorion/dsh-teaching-board
+# 然后重启 dsh --profile web 并刷新页面
+```
+
+它是一个 **profile 级 bundle**：装一次，这个进程里所有会话都拿得到 `stage_*` 工具与「教学平面」页签。
+（`dsh plugin add` 会把依赖与 bundles 条目一起写进该 profile 的 manifest。）
+
 ## 能力
 
 | 能力 | 实现位置 | 说明 |
