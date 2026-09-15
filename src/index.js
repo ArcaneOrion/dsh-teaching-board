@@ -3,6 +3,11 @@
  * 定位：会话内「教学平面」——把 agent 生成的 self-contained HTML 投影为可讲解、
  * 可勾画、可截图的板书界面。
  *
+ * 两层都在这个包里：
+ *   能力层 = 本文件注册的 stage_* 工具 + client 半的「面板」视图；
+ *   行为层 = src/skills.js 把包内 skills/stage-panel/ 注册成 bundled skill。
+ * 挂上插件就同时拿到两者——不再依赖任何 preset 单独装一份使用手册。
+ *
  * 原生设计（单一数据流）：只注册模型工具，无私有状态、无 RPC、无 wait。
  * 「面板」状态 = 会话中最近一次 stage_* 工具调用的参数（client 从会话快照消费）；
  * 用户点选/回传 = 真实用户消息（DSH 原生输入流）。
@@ -13,11 +18,17 @@
  * 消息进入会话，模型在下一轮就能看见。这与 stage_choice 的机制完全一致。
  */
 import { defineTool } from '@deepseek-ai/dsh-tools'
+import { createSkillProvider } from './skills.js'
 
 export const name = 'teaching-board'
 export const inject = ['tools']
 
 export function apply(ctx) {
+  // 行为层：把自带的使用手册发布进技能目录。这里用可选读取而不是 inject——
+  // 技能注册是增益，不该让白板因为缺 skills 服务而整个不挂载。
+  const skills = ctx.get('skills')
+  if (skills !== undefined) skills.registerProvider(createSkillProvider)
+
   const textRender = (_args, value) => [{ type: 'text', text: value }]
 
   ctx.tools.register(defineTool({

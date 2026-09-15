@@ -1,6 +1,6 @@
 {
   "name": "@arcaneorion/dsh-teaching-board",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -8,7 +8,7 @@
     "./client": "./src/client.js",
     "./package.json": "./package.json"
   },
-  "description": "DSH teaching surface: project agent-generated self-contained HTML into a sandboxed in-session board with handwriting annotation and a built-in screenshot that returns to the conversation as a real user message.",
+  "description": "DSH teaching surface: project agent-generated self-contained HTML into a sandboxed in-session board with handwriting annotation and a built-in screenshot that returns to the conversation as a real user message. Ships its own usage skill (skills/stage-panel).",
   "license": "MIT",
   "author": "arcanexis",
   "repository": {
@@ -26,10 +26,12 @@
     "screenshot",
     "ui",
     "panel",
-    "iframe"
+    "iframe",
+    "skill"
   ],
   "files": [
     "src",
+    "skills",
     "cordis.patch.yml",
     "README.md"
   ],

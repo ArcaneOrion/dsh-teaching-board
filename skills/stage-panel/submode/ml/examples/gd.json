@@ -1,0 +1,7 @@
+{
+  "title": "梯度下降：拟合 y = wx + b",
+  "subtitle": "前端实时计算 · 拖滑块看学习率如何改变收敛路径 · 不走任何 run 通道",
+  "data_points": [[0, 1], [1, 3], [2, 5], [3, 7]],
+  "config": {"lr": 0.05, "iterations": 200, "init_w": 0, "init_b": 0},
+  "target": {"w": 2, "b": 1, "note": "y = 2x + 1 的真值"}
+}

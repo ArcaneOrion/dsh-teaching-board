@@ -1,5 +1,9 @@
-# 教学平面 bundle row: 板书视图（勾画 / 截图）+ stage_* 工具（能力层，profile 级）。
-# 行为层 = preset arcane-stage-panel（模式纪律与内容规范）。
+# 教学平面 bundle row（能力层 + 行为层都在 @arcaneorion/dsh-teaching-board 里）。
+#
+# 能力层：板书视图（勾画 / 截图）+ stage_* 工具。
+# 行为层：插件在 apply 时把自带的 skills/stage-panel/ 注册进 ctx.skills
+#        （bundled skill，见 src/skills.js）——挂上本插件就有使用手册，
+#        不需要任何 preset 另外装一份。
 - insert:
     - id: teaching-board
       name: '@arcaneorion/dsh-teaching-board'

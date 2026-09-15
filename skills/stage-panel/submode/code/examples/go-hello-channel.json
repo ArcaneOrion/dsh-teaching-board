@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "id": "go-hello-channel",
+  "title": "Go：channel 接收一行消息",
+  "subtitle": "最小可运行并发切片",
+  "lang": "go",
+  "level": "intro",
+  "stage": "运行 → 读输出",
+  "summary": "启动 goroutine 发送字符串，主 goroutine 从 channel 接收并打印。",
+  "objectives": [
+    "运行成功看到 hello from goroutine",
+    "解释若去掉 <-ch 会怎样"
+  ],
+  "focus": {
+    "concept": "channel-recv",
+    "trap": "missing-receive-deadlock"
+  },
+  "starter": {
+    "filename": "main.go",
+    "code": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tch := make(chan string, 1)\n\tgo func() {\n\t\tch <- \"hello from goroutine\"\n\t}()\n\tmsg := <-ch\n\tfmt.Println(msg)\n}\n"
+  },
+  "run": {
+    "filename": "main.go"
+  },
+  "exercises": [
+    {
+      "id": "e1",
+      "type": "short",
+      "prompt": "为什么这里用带缓冲 channel（容量 1）也能工作？无缓冲时要注意什么？"
+    }
+  ],
+  "hints": [
+    "无缓冲 channel 需要发送与接收双方都准备好。",
+    "教学时优先保证 main 会接收，避免进程挂起触发 timeout。"
+  ]
+}

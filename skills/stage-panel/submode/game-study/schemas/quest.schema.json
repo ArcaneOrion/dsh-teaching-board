@@ -1,0 +1,95 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "LocalWeb Game-Study Quest",
+  "description": "自适应学习系统 quest。cells 是知识点(结构图节点), relations 是知识间关系(连线), questions 是逐题题库。掌握度/错题/复习计划写入目标项目 .localweb/study/, 跨会话累积。",
+  "type": "object",
+  "required": ["title", "domain", "cells", "questions"],
+  "properties": {
+    "schema_version": {"type": "number", "const": 2},
+    "id": {"type": "string", "description": "Quest id, 也作为 study 持久化命名空间"},
+    "title": {"type": "string"},
+    "subtitle": {"type": "string"},
+    "domain": {"type": "string", "description": "知识域名称"},
+    "summary": {"type": "string", "description": "学习引导语"},
+    "cells": {
+      "type": "array",
+      "description": "知识点——结构图节点",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "brief"],
+        "properties": {
+          "id": {"type": "string"},
+          "label": {"type": "string"},
+          "brief": {"type": "string", "description": "1-2 句概念定义"},
+          "example": {"type": "string"},
+          "difficulty": {"type": "integer", "minimum": 1, "maximum": 5, "description": "影响初始稳定性与选题优先级"},
+          "prereq": {"type": "array", "items": {"type": "string"}, "description": "前置知识点 id(用于结构图依赖与路径排序)"},
+          "tags": {"type": "array", "items": {"type": "string"}, "description": "展开面标签(分组着色)"}
+        }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "description": "知识点间关系——结构图连线。缺失时面板按 prereq 自动补边",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": {
+          "from": {"type": "string"},
+          "to": {"type": "string"},
+          "label": {"type": "string"},
+          "kind": {"type": "string", "enum": ["unfolds", "implements", "constrains", "emerges", "depends", "mirrors"]}
+        }
+      }
+    },
+    "questions": {
+      "type": "array",
+      "description": "逐题题库——主动回忆主战场。答题结果更新对应知识点掌握度并写错题本",
+      "items": {
+        "type": "object",
+        "required": ["id", "cell", "type", "prompt"],
+        "properties": {
+          "id": {"type": "string"},
+          "cell": {"description": "主关联知识点 id 或 id 数组", "oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]},
+          "type": {"type": "string", "enum": ["choice", "multi", "connect", "feynman"], "description": "choice=单选 multi=多选 connect=关系判断 feynman=用自己的话解释(回传CLI判定)"},
+          "prompt": {"type": "string"},
+          "options": {
+            "type": "array",
+            "description": "选项(choice/multi/connect必填; feynman留空)",
+            "items": {
+              "type": "object",
+              "required": ["label"],
+              "properties": {
+                "label": {"type": "string"},
+                "correct": {"type": "boolean"},
+                "is": {"type": "string", "description": "connect题里此选项代表的关系标签"}
+              }
+            }
+          },
+          "answer": {"type": "string", "description": "正解(choice为选项label; connect为关系标签; feynman为参考解释)"},
+          "explain": {"type": "string", "description": "错因/解析, 答错或复盘时展示,沉淀进错题本"},
+          "difficulty": {"type": "integer", "minimum": 1, "maximum": 5},
+          "feynman_points": {"type": "array", "items": {"type": "string"}, "description": "仅feynman: agent判定理解度时应覆盖的要点清单"}
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "description": "本轮答题配置(可选)",
+      "properties": {
+        "length": {"type": "integer", "minimum": 3, "maximum": 30, "description": "本轮题数,默认8"},
+        "shuffle": {"type": "boolean", "description": "随机题序,默认true"},
+        "review_mode": {"type": "boolean", "description": "优先复习到期错题/低掌握度,默认false"}
+      }
+    },
+    "next": {
+      "type": "array",
+      "description": "学习结束后可选的下一步方向",
+      "items": {
+        "type": "object",
+        "required": ["id", "label"],
+        "properties": {"id": {"type": "string"}, "label": {"type": "string"}, "description": {"type": "string"}}
+      }
+    }
+  }
+}

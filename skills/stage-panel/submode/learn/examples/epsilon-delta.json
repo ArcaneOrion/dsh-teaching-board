@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "id": "epsilon-delta",
+  "title": "epsilon-delta 极限证明",
+  "subtitle": "从具体线性函数开始，把误差控制写成可检查的结构",
+  "stage": "概念入口 + 主动回忆",
+  "summary": "epsilon-delta 证明的核心不是背模板，而是把目标误差 |f(x)-L| < epsilon 反推成对 |x-a| 的约束。",
+  "objectives": [
+    "说清楚 epsilon 和 delta 各自控制什么",
+    "把 |3x-1-5| < epsilon 化成 |x-2| < epsilon/3",
+    "解释为什么选 delta = epsilon/3 足够"
+  ],
+  "concepts": [
+    {
+      "term": "epsilon",
+      "definition": "目标误差上界。证明者要保证函数值和极限值的距离小于它。",
+      "back": "把 epsilon 想成对方给出的验收标准：无论它多小，证明都要能找到一个输入范围，让函数值误差落进这个标准里。",
+      "note": "它由对方任意给出，不能由证明者挑。"
+    },
+    {
+      "term": "delta",
+      "definition": "输入距离上界。证明者根据 epsilon 选择它，用来限制 x 离 a 足够近。",
+      "back": "delta 是证明者能控制的旋钮。在线性例子里，把目标误差反推成 |x-a| 的上界，就能直接读出 delta。",
+      "note": "delta 的任务是让目标误差自动成立。"
+    },
+    {
+      "term": "误差反推",
+      "definition": "从 |f(x)-L| 的表达式出发，找出它和 |x-a| 的关系。",
+      "back": "反推不是倒着证明结论，而是寻找一个足够强的输入条件。找到以后，正式证明仍然从 0 < |x-a| < delta 推回目标误差。",
+      "note": "线性函数里通常可以直接提出常数倍。"
+    }
+  ],
+  "structure": {
+    "nodes": [
+      {
+        "id": "abs",
+        "label": "绝对值距离",
+        "kind": "prerequisite",
+        "detail": "|x-a| 表示 x 到 a 的距离"
+      },
+      {
+        "id": "input",
+        "label": "输入约束",
+        "kind": "current",
+        "detail": "0 < |x-a| < delta"
+      },
+      {
+        "id": "target",
+        "label": "目标误差",
+        "kind": "current",
+        "detail": "|f(x)-L| < epsilon"
+      },
+      {
+        "id": "next",
+        "label": "局部有界控制",
+        "kind": "next",
+        "detail": "二次函数等非线性例子需要额外控制局部范围"
+      }
+    ],
+    "edges": [
+      {
+        "from": "abs",
+        "to": "input",
+        "label": "定义距离"
+      },
+      {
+        "from": "input",
+        "to": "target",
+        "label": "delta 让目标成立"
+      },
+      {
+        "from": "target",
+        "to": "next",
+        "label": "非线性时需要多一步"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "线性例子",
+      "type": "worked",
+      "body": "证明 lim(x -> 2)(3x - 1) = 5。因为 |(3x-1)-5| = |3x-6| = 3|x-2|，所以只要让 |x-2| < epsilon/3，就能推出目标误差小于 epsilon。"
+    },
+    {
+      "title": "常见误区",
+      "type": "nonexample",
+      "body": "不要先假设 |3x-1-5| < epsilon 再推出 delta。证明方向应该是：先限制 |x-2|，再推出目标误差。"
+    }
+  ],
+  "questions": [
+    {
+      "id": "q1",
+      "type": "short",
+      "prompt": "用一句话说明 epsilon 和 delta 的分工。",
+      "hint": "谁是目标，谁是手段？"
+    },
+    {
+      "id": "q2",
+      "type": "choice",
+      "prompt": "证明 lim(x -> 2)(3x - 1) = 5 时，下面哪个 delta 选择一定足够？",
+      "options": [
+        {
+          "id": "a",
+          "label": "delta = epsilon / 3"
+        },
+        {
+          "id": "b",
+          "label": "delta = 3epsilon"
+        },
+        {
+          "id": "c",
+          "label": "delta = epsilon + 2"
+        }
+      ],
+      "hint": "把目标误差写成 3|x-2|。"
+    },
+    {
+      "id": "q3",
+      "type": "explain",
+      "prompt": "为什么证明里不能直接把 |3x-1-5| < epsilon 当作已知？"
+    }
+  ],
+  "next": [
+    {
+      "id": "same-pattern",
+      "label": "同型线性题",
+      "description": "换一个一次函数，检查能否独立反推 delta。"
+    },
+    {
+      "id": "quadratic",
+      "label": "进入二次函数",
+      "description": "学习 min(1, epsilon/C) 里的局部范围控制。"
+    },
+    {
+      "id": "definition",
+      "label": "回到正式定义",
+      "description": "把具体证明嵌回教材中的 epsilon-delta 定义。"
+    }
+  ]
+}

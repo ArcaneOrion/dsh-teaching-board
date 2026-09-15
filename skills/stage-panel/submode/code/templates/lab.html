@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Code 展示</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0d1117;
+    --panel: #161b22;
+    --line: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #3fb950;
+    --blue: #58a6ff;
+    --warn: #d29922;
+    --err: #f85149;
+    --kw: #ff7b72;
+    --str: #a5d6ff;
+    --com: #8b949e;
+    --num: #79c0ff;
+    --type: #ffa657;
+    --fn: #d2a8ff;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+  }
+  button, textarea, pre { font: inherit; }
+  button { cursor: pointer; }
+
+  .wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .meta { min-width: 0; }
+  .lang {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--accent);
+    border: 1px solid #238636;
+    border-radius: 999px;
+    padding: 1px 8px;
+    margin-bottom: 6px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    line-height: 1.25;
+  }
+  .sub { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .btns { display: flex; gap: 8px; align-items: center; }
+  .btn {
+    border: 1px solid var(--line);
+    background: #21262d;
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+  .btn.primary-soft {
+    background: #1f6feb33;
+    border-color: #1f6feb;
+    color: var(--blue);
+  }
+  .btn:hover { filter: brightness(1.12); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  .tutor-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .tutor-note {
+    flex: 1 1 240px;
+    background: #0f141a;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .tutor-note:focus { border-color: var(--blue); outline: none; }
+  .tutor-hint { font-size: 11px; color: var(--muted); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr);
+    gap: 12px;
+    align-items: start;
+  }
+
+  .code-card {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .filebar {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    background: #0f141a;
+  }
+  .filebar b { color: var(--text); font-weight: 600; }
+  .code-stack {
+    position: relative;
+    background: #0b0f14;
+    max-height: 70vh;
+    overflow: auto;
+    margin: 0;
+    padding: 12px 14px;
+    white-space: pre;
+    tab-size: 4;
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.55;
+    color: #dbe7f0;
+  }
+  .code-stack:empty::before { content: '(无代码)'; color: var(--muted); font-style: italic; }
+
+  .tok-kw { color: var(--kw); }
+  .tok-str { color: var(--str); }
+  .tok-com { color: var(--com); font-style: italic; }
+  .tok-num { color: var(--num); }
+  .tok-type { color: var(--type); }
+  .tok-fn { color: var(--fn); }
+  .tok-op { color: #ffA198; }
+
+  .side-card { padding: 12px; display: grid; gap: 12px; }
+  .block h2 {
+    margin: 0 0 6px;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .block p, .block li {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #c9d1d9;
+  }
+  .block ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; }
+  .ann { display: grid; gap: 6px; }
+  .ann div {
+    border-left: 3px solid var(--blue);
+    background: #0f141a;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+  .ann .error { border-left-color: var(--err); }
+  .ann .move, .ann .warn { border-left-color: var(--warn); }
+  .pipe {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .hidden { display: none !important; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="bar">
+      <div class="meta">
+        <div class="lang" id="lang">python</div>
+        <h1 id="title">Code 展示</h1>
+        <p class="sub" id="subtitle"></p>
+      </div>
+      <div class="btns">
+        <button class="btn primary-soft" id="btn-send" type="button">发给导师讲解</button>
+      </div>
+    </div>
+
+    <div class="tutor-row">
+      <input id="tutor-note" class="tutor-note" type="text" maxlength="500" placeholder="发给导师时的可选问题（可不填，直接点按钮）" />
+      <span class="tutor-hint" id="tutor-hint">作为讲解素材呈现代码；点按钮附当前代码发给 AI 导师。</span>
+    </div>
+
+    <div class="layout">
+      <div class="code-card">
+        <div class="filebar">
+          <span><b id="filename">main.py</b></span>
+          <span>展示 · 讲解参考</span>
+        </div>
+        <pre class="code-stack" id="code"></pre>
+      </div>
+
+      <aside class="side-card">
+        <div class="block" id="summary-block">
+          <h2>本课</h2>
+          <p id="summary"></p>
+        </div>
+        <div class="block" id="objectives-block">
+          <h2>目标</h2>
+          <ul id="objectives"></ul>
+        </div>
+        <div class="block" id="ann-block">
+          <h2>行注</h2>
+          <div class="ann" id="annotations"></div>
+        </div>
+        <div class="block" id="exercise-block">
+          <h2>练习</h2>
+          <ul id="exercises"></ul>
+        </div>
+        <div class="block" id="hint-block">
+          <h2>提示</h2>
+          <ul id="hints"></ul>
+        </div>
+        <div class="pipe" id="pipe">就绪</div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+  const LESSON = __LOCALWEB_LESSON_DATA__;
+  const INPUT_ID = "__LOCALWEB_INPUT_ID__";
+  const PANEL_ID = "__LOCALWEB_PANEL_ID__";
+  const MENTOR = __LOCALWEB_MENTOR__;
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    lang: $('lang'),
+    title: $('title'),
+    subtitle: $('subtitle'),
+    summary: $('summary'),
+    objectives: $('objectives'),
+    annotations: $('annotations'),
+    exercises: $('exercises'),
+    hints: $('hints'),
+    filename: $('filename'),
+    code: $('code'),
+    pipe: $('pipe'),
+    btnSend: $('btn-send'),
+    tutorNote: $('tutor-note'),
+    tutorHint: $('tutor-hint'),
+    summaryBlock: $('summary-block'),
+    objectivesBlock: $('objectives-block'),
+    annBlock: $('ann-block'),
+    exerciseBlock: $('exercise-block'),
+    hintBlock: $('hint-block'),
+  };
+
+  const lang = String((LESSON && LESSON.lang) || 'python').toLowerCase();
+
+  const KEYWORDS = {
+    python: new Set(['False','None','True','and','as','assert','async','await','break','class','continue','def','del','elif','else','except','finally','for','from','global','if','import','in','is','lambda','nonlocal','not','or','pass','raise','return','try','while','with','yield']),
+    rust: new Set(['as','async','await','break','const','continue','crate','dyn','else','enum','extern','false','fn','for','if','impl','in','let','loop','match','mod','move','mut','pub','ref','return','self','Self','static','struct','super','trait','true','type','unsafe','use','where','while']),
+    go: new Set(['break','case','chan','const','continue','default','defer','else','fallthrough','for','func','go','goto','if','import','interface','map','package','range','return','select','struct','switch','type','var']),
+  };
+
+  const BUILTINS = {
+    python: new Set(['print','len','range','str','int','float','list','dict','set','tuple','open','type','isinstance','enumerate','zip','map','filter','sum','min','max','abs','sorted','reversed','any','all']),
+    rust: new Set(['println','print','format','vec','String','Vec','Option','Result','Some','None','Ok','Err','Box','Rc','Arc']),
+    go: new Set(['fmt','make','len','cap','append','copy','delete','panic','recover','new','close','true','false','nil','string','int','int64','float64','bool','error','byte','rune']),
+  };
+
+  function defaultFilename(l) {
+    if (l === 'rust') return 'main.rs';
+    if (l === 'go') return 'main.go';
+    return 'main.py';
+  }
+
+  function primarySnippet() {
+    const snippets = Array.isArray(LESSON.snippets) ? LESSON.snippets.filter(Boolean) : [];
+    const runId = LESSON.run && LESSON.run.snippet_id;
+    const same = snippets.filter((s) => String(s.lang || lang).toLowerCase() === lang);
+    if (runId) {
+      const hit = same.find((s) => s.id === runId) || snippets.find((s) => s.id === runId);
+      if (hit) return hit;
+    }
+    return same.find((s) => (s.role || 'primary') === 'primary')
+      || same[0]
+      || {
+        id: 'main',
+        lang,
+        filename: (LESSON.starter && LESSON.starter.filename) || defaultFilename(lang),
+        code: (LESSON.starter && LESSON.starter.code) || '',
+        annotations: [],
+      };
+  }
+
+  const snippet = primarySnippet();
+  const displayCode = String(snippet.code || (LESSON.starter && LESSON.starter.code) || '');
+
+  let sendBusy = false;
+
+  function esc(v) {
+    return String(v ?? '').replace(/[&<>"']/g, (ch) => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[ch]));
+  }
+
+  function setPipe(msg) { els.pipe.textContent = msg; }
+
+  function tokenize(code, language) {
+    const kw = KEYWORDS[language] || KEYWORDS.python;
+    const builtins = BUILTINS[language] || new Set();
+    const lineComment = language === 'python' ? '#' : '//';
+    let i = 0;
+    let out = '';
+    const n = code.length;
+
+    function takeWhile(pred) {
+      const start = i;
+      while (i < n && pred(code[i])) i += 1;
+      return code.slice(start, i);
+    }
+
+    while (i < n) {
+      const ch = code[i];
+      const next = code[i + 1] || '';
+
+      if (language === 'python' && ch === '#') {
+        const text = takeWhile((c) => c !== '\n');
+        out += `<span class="tok-com">${esc(text)}</span>`;
+        continue;
+      }
+      if ((language === 'rust' || language === 'go') && ch === '/' && next === '/') {
+        const text = takeWhile((c) => c !== '\n');
+        out += `<span class="tok-com">${esc(text)}</span>`;
+        continue;
+      }
+      if ((language === 'rust' || language === 'go') && ch === '/' && next === '*') {
+        let text = '/*';
+        i += 2;
+        while (i < n && !(code[i] === '*' && code[i + 1] === '/')) {
+          text += code[i];
+          i += 1;
+        }
+        if (i < n) { text += '*/'; i += 2; }
+        out += `<span class="tok-com">${esc(text)}</span>`;
+        continue;
+      }
+
+      if (ch === '"' || ch === "'" || (language === 'rust' && ch === 'r' && (next === '"' || next === '#'))) {
+        if (language === 'rust' && ch === 'r') {
+          let j = i + 1;
+          let hashes = '';
+          while (code[j] === '#') { hashes += '#'; j += 1; }
+          if (code[j] === '"') {
+            let text = code.slice(i, j + 1);
+            i = j + 1;
+            const end = '"' + hashes;
+            while (i < n && code.slice(i, i + end.length) !== end) {
+              text += code[i];
+              i += 1;
+            }
+            text += code.slice(i, i + end.length);
+            i += end.length;
+            out += `<span class="tok-str">${esc(text)}</span>`;
+            continue;
+          }
+        }
+        const quote = ch;
+        let text = quote;
+        i += 1;
+        while (i < n) {
+          const c = code[i];
+          text += c;
+          i += 1;
+          if (c === '\\' && i < n) { text += code[i]; i += 1; continue; }
+          if (c === quote) break;
+          if (c === '\n' && language === 'python' && quote !== "'''" ) break;
+        }
+        out += `<span class="tok-str">${esc(text)}</span>`;
+        continue;
+      }
+
+      if (language === 'go' && ch === '`') {
+        let text = '`';
+        i += 1;
+        while (i < n && code[i] !== '`') { text += code[i]; i += 1; }
+        if (i < n) { text += '`'; i += 1; }
+        out += `<span class="tok-str">${esc(text)}</span>`;
+        continue;
+      }
+
+      if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(next))) {
+        const text = takeWhile((c) => /[0-9_.xXoObBa-fA-F]/.test(c));
+        out += `<span class="tok-num">${esc(text)}</span>`;
+        continue;
+      }
+
+      if (/[A-Za-z_]/.test(ch)) {
+        const text = takeWhile((c) => /[A-Za-z0-9_]/.test(c));
+        let k = i;
+        while (k < n && /\s/.test(code[k])) k += 1;
+        const isCall = code[k] === '(';
+        if (kw.has(text)) out += `<span class="tok-kw">${esc(text)}</span>`;
+        else if (builtins.has(text)) out += `<span class="tok-fn">${esc(text)}</span>`;
+        else if (/^[A-Z]/.test(text) && language !== 'python') out += `<span class="tok-type">${esc(text)}</span>`;
+        else if (isCall) out += `<span class="tok-fn">${esc(text)}</span>`;
+        else out += esc(text);
+        continue;
+      }
+
+      if ('=+-*/%<>!&|^~?:.'.includes(ch)) {
+        const text = takeWhile((c) => '=+-*/%<>!&|^~?:.'.includes(c));
+        out += `<span class="tok-op">${esc(text)}</span>`;
+        continue;
+      }
+
+      out += esc(ch);
+      i += 1;
+    }
+    return out || ' ';
+  }
+
+  function renderMeta() {
+    els.lang.textContent = lang;
+    els.title.textContent = (LESSON && LESSON.title) || 'Code 展示';
+    els.subtitle.textContent = (LESSON && (LESSON.subtitle || LESSON.stage)) || '';
+    const summary = (LESSON && LESSON.summary) || '';
+    els.summary.textContent = summary;
+    els.summaryBlock.classList.toggle('hidden', !summary);
+
+    const objectives = Array.isArray(LESSON.objectives) ? LESSON.objectives : [];
+    if (objectives.length) {
+      els.objectives.innerHTML = objectives.map((o) => `<li>${esc(o)}</li>`).join('');
+    } else {
+      els.objectivesBlock.classList.add('hidden');
+    }
+
+    const anns = Array.isArray(snippet.annotations) ? snippet.annotations : [];
+    if (anns.length) {
+      els.annotations.innerHTML = anns.map((a) =>
+        `<div class="${esc(a.kind || 'info')}"><strong>L${esc(a.line)}</strong> ${esc(a.text || '')}</div>`
+      ).join('');
+    } else {
+      els.annBlock.classList.add('hidden');
+    }
+
+    const exercises = Array.isArray(LESSON.exercises) ? LESSON.exercises : [];
+    if (exercises.length) {
+      els.exercises.innerHTML = exercises.map((ex) =>
+        `<li><strong>${esc(ex.type || 'task')}</strong> — ${esc(ex.prompt || '')}</li>`
+      ).join('');
+    } else {
+      els.exerciseBlock.classList.add('hidden');
+    }
+
+    const hints = Array.isArray(LESSON.hints) ? LESSON.hints : [];
+    if (hints.length) {
+      els.hints.innerHTML = hints.map((h) => `<li>${esc(h)}</li>`).join('');
+    } else {
+      els.hintBlock.classList.add('hidden');
+    }
+
+    els.filename.textContent = snippet.filename || defaultFilename(lang);
+  }
+
+  function buildTutorPackage(note) {
+    const lines = [
+      '## Code 展示 · 发给导师',
+      '',
+      `- lesson: ${(LESSON && (LESSON.id || LESSON.title)) || ''}`,
+      `- lang: ${lang}`,
+      `- file: ${els.filename.textContent || defaultFilename(lang)}`,
+      `- action: ask_tutor`,
+    ];
+    if (note) {
+      lines.push('', '### 用户说明', '', note);
+    }
+    lines.push('', '### 展示代码', '', '```' + lang, displayCode.replace(/\n$/, ''), '```');
+    lines.push('', '请结合代码讲解：思路、关键点、可能的问题或下一步。');
+    return lines.join('\n');
+  }
+
+  function sendToTutor() {
+    if (sendBusy) return;
+    if (!MENTOR || !INPUT_ID) {
+      setPipe('缺少导师通道：请用 code 命令（默认 wait）重新打开本课');
+      return;
+    }
+    const note = String((els.tutorNote && els.tutorNote.value) || '').trim();
+    const text = buildTutorPackage(note);
+    sendBusy = true;
+    els.btnSend.disabled = true;
+    els.btnSend.textContent = '发送中…';
+    setPipe('正在发给导师…');
+    window.parent.postMessage({
+      localweb: true,
+      type: 'panel_input',
+      input_id: INPUT_ID,
+      panel_id: PANEL_ID,
+      label: 'ask_tutor',
+      text,
+      meta: {
+        localweb_code: true,
+        action: 'ask_tutor',
+        lang,
+        lesson_id: (LESSON && LESSON.id) || '',
+        source: displayCode,
+        note,
+      },
+    }, '*');
+  }
+
+  function onTutorSendResult(ok, message) {
+    sendBusy = false;
+    els.btnSend.disabled = false;
+    els.btnSend.textContent = '发给导师讲解';
+    if (ok) {
+      setPipe(message || '已发送到导师通道');
+      if (els.tutorHint) els.tutorHint.textContent = '已发送 · 等待导师读取';
+    } else {
+      setPipe(message || '发送失败');
+      if (els.tutorHint) els.tutorHint.textContent = '发送失败，可再点一次';
+    }
+  }
+
+  window.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || typeof data !== 'object' || data.localweb !== true) return;
+    if (data.type === 'panel_input_result') {
+      onTutorSendResult(Boolean(data.ok), data.message || (data.ok ? '已发送' : '发送失败'));
+    }
+  });
+
+  // Init: render code + meta. Pure display; no edits, no host run.
+  els.code.innerHTML = tokenize(displayCode.endsWith('\n') ? displayCode : displayCode + '\n', lang);
+  try { renderMeta(); } catch (err) { console.error(err); setPipe('meta render error, code still shown'); }
+  setPipe(MENTOR ? '展示 · 可发给导师讲解' : '展示模式');
+
+  els.btnSend.addEventListener('click', sendToTutor);
+  </script>
+</body>
+</html>

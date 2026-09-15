@@ -1,0 +1,60 @@
+{
+  "schema_version": 2,
+  "id": "hft-microstructure",
+  "title": "高频交易微观结构",
+  "subtitle": "以限价订单簿为中心，漫步订单流/延迟/做市/风险四个展开面",
+  "domain": "HFT 微观结构",
+  "summary": "自适应学习：以限价订单簿为中心，逐题主动回忆。答错进错题本、掌握度累积、费曼题回传 CLI 判定。HP 不再是娱乐涂层，掌握度才是真正的训练预算。",
+  "cells": [
+    {"id":"lob","label":"限价订单簿","brief":"实时记录所有未成交限价单的数据结构——每个价位的买卖挂单量。微观结构的底座。","example":"Level-2：买一 100.00 挂 3000 股，卖一 100.02 挂 1500 股——簿的不对称就是信号。","difficulty":2,"tags":["core"]},
+    {"id":"orderflow","label":"订单流","brief":"按时间序贯到达的订单事件(新增/撤单/成交)序列。把市场看作由订单流驱动的时间动态系统。","example":"一笔 5000 股市价买单吃穿簿三层卖单才成交完——一次订单流事件对簿的冲击。","difficulty":3,"tags":["flow"],"prereq":["lob"]},
+    {"id":"latency","label":"延迟","brief":"从行情到达、到决策、到下单的端到端时间。微秒级 HFT 里，延迟直接等于机会。","example":"新行情后你下单差 50 微秒——这 50μs 决定你能否吃到那档价差。","difficulty":3,"tags":["latency"],"prereq":["lob"]},
+    {"id":"mm","label":"做市","brief":"同时在买价卖价双边挂限价单赚 bid-ask 价差，撮合时主动管理库存。HFT 占比最大的策略。","example":"bid=99.99 挂买、ask=100.01 挂卖各 100 股——两边成交赚 2 分×100=2 美元，不赌方向。","difficulty":3,"tags":["models"],"prereq":["lob"]},
+    {"id":"spread","label":"买卖价差","brief":"最优卖价(ask)与最优买价(bid)之差，即时流动性的价格。越窄越流动。","example":"bid=100.00、ask=100.02，价差 0.02——市价单一买一卖付 2 分钱流动性税。","difficulty":2,"tags":["book"],"prereq":["lob"]},
+    {"id":"depth","label":"订单簿深度","brief":"不同价位累积挂单量，衡量簿能吸收多大冲击而不剧烈移价。流动性的纵深。","example":"买盘 100.00 挂 3000 股、99.99 挂 8000 股——深度告诉你 5000 股市价单会把价砸到哪。","difficulty":3,"tags":["book"],"prereq":["lob"]},
+    {"id":"midprice","label":"中间价","brief":"(bid+ask)/2，订单簿瞬时公允估值。无交易成本的价格参考，多数策略的计价基准。","example":"bid=100.00、ask=100.02 → mid=100.01——做市盈亏常以 mid 为公允计价。","difficulty":2,"tags":["book"],"prereq":["spread"]},
+    {"id":"imbalance","label":"买卖单失衡","brief":"簿上买盘量与卖盘量的不对称。短期价格漂移最强预测因子之一：买压更强则中间价倾向上移。","example":"买盘 10000 股 vs 卖盘 4000 股，失衡比 +0.43——历史上正失衡后 1 秒收益偏正。","difficulty":4,"tags":["flow"],"prereq":["orderflow","depth"]},
+    {"id":"passive","label":"被动单与主动单","brief":"被动限价单挂簿等待成交(提供流动性)，主动市价单吃簿立即成交(消费流动性)。谁被动谁主动决定谁赚价差谁付价差。","example":"你挂 100.00 买单等成交是被动单；对手市价卖单砸进来吃掉你的挂单是主动单——你赚了价差。","difficulty":3,"tags":["flow"],"prereq":["orderflow"]},
+    {"id":"colo","label":"同地部署","brief":"把交易服务器物理放进交易所机房，把网络往返延迟压到最低。HFT 降延迟最直接的硬件手段。","example":"从芝加哥搬到纳斯达克 NJ 机房，往返 15ms→50μs，提速约 300 倍。","difficulty":3,"tags":["latency"],"prereq":["latency"]},
+    {"id":"latarb","label":"延迟套利","brief":"利用速度优势，在慢市场未更新报价前于快市场已更新价差中撮合。常被指为抢跑。","example":"ES 期货在 CME 已出新价，ETF 还挂旧价——抢在 ETF 更新前买入，几乎无风险赚价差。","difficulty":4,"tags":["latency"],"prereq":["colo"]},
+    {"id":"inventory","label":"库存风险","brief":"净头寸的方向性敞口。做市商一边成交多一边没成交就积累库存，被价格反向变动打亏。","example":"买单成交卖单没成交，净持多 100 股——价格跌 1 元库存亏 100 元，吃掉全天价差收入。","difficulty":3,"tags":["models"],"prereq":["mm"]},
+    {"id":"adverse","label":"逆相选择","brief":"做市商致命风险：挂单被知情交易者(有信息优势方)吃掉——成交在不利价格，跟着对手方向亏。","example":"知情者知道要发利好，猛砸市价买单吃光你的卖单——你卖在低价，眼看价格飞走。","difficulty":4,"tags":["models"],"prereq":["mm"]}
+  ],
+  "relations": [
+    {"from":"orderflow","to":"lob","label":"更新","kind":"implements"},
+    {"from":"lob","to":"spread","label":"涌现为","kind":"emerges"},
+    {"from":"lob","to":"depth","label":"具现","kind":"implements"},
+    {"from":"spread","to":"midprice","label":"计算","kind":"depends"},
+    {"from":"orderflow","to":"imbalance","label":"涌现为","kind":"emerges"},
+    {"from":"orderflow","to":"passive","label":"分类","kind":"unfolds"},
+    {"from":"passive","to":"imbalance","label":"累积","kind":"depends"},
+    {"from":"mm","to":"lob","label":"挂单于","kind":"implements"},
+    {"from":"mm","to":"spread","label":"赚取","kind":"implements"},
+    {"from":"mm","to":"inventory","label":"承担","kind":"constrains"},
+    {"from":"mm","to":"adverse","label":"面临","kind":"constrains"},
+    {"from":"latency","to":"colo","label":"通过","kind":"implements"},
+    {"from":"colo","to":"latarb","label":"武器化","kind":"implements"},
+    {"from":"latarb","to":"adverse","label":"加剧","kind":"emerges"},
+    {"from":"imbalance","to":"midprice","label":"推动","kind":"emerges"},
+    {"from":"inventory","to":"spread","label":"加宽","kind":"constrains"}
+  ],
+  "questions": [
+    {"id":"q1","cell":"lob","type":"choice","prompt":"限价订单簿(LOB)记录的是什么？","options":[{"label":"所有已成交的历史交易","correct":false},{"label":"所有未成交的限价挂单(按价位排列的买卖量)","correct":true},{"label":"交易所收取的手续费表","correct":false}],"answer":"所有未成交的限价挂单(按价位排列的买卖量)","explain":"LOB 是实时挂单簿，记录的是待成交的供需，不是历史成交。它是微观结构的底座。","difficulty":1},
+    {"id":"q2","cell":"spread","type":"choice","prompt":"买卖价差(bid-ask spread)衡量什么？","options":[{"label":"即时流动性的价格，越窄越流动","correct":true},{"label":"一天内最大涨跌幅","correct":false},{"label":"交易所的成交量","correct":false}],"answer":"即时流动性的价格，越窄越流动","explain":"价差=最优卖价-最优买价，是立即买入再卖出的流动性成本。窄价差=高流动性。","difficulty":1},
+    {"id":"q3","cell":"mm","type":"choice","prompt":"做市商的主要盈利来源是什么？","options":[{"label":"准确预测涨跌方向做单边交易","correct":false},{"label":"双边挂单赚 bid-ask 价差，不赌方向","correct":true},{"label":"收取其他交易者的佣金","correct":false}],"answer":"双边挂单赚 bid-ask 价差，不赌方向","explain":"做市靠在买卖双边挂限价单，撮合成交赚价差，靠成交量而非方向盈利。","difficulty":2},
+    {"id":"q4","cell":"adverse","type":"choice","prompt":"做市商最致命的风险「逆相选择」指的是？","options":[{"label":"交易所系统故障导致撤单","correct":false},{"label":"挂单被知情交易者吃掉，成交在不利价格","correct":true},{"label":"自己的网络延迟过高","correct":false}],"answer":"挂单被知情交易者吃掉，成交在不利价格","explain":"知情者有信息优势，专挑做市商挂单吃，做市商被动成交在错误方向，是结构性亏钱。","difficulty":3},
+    {"id":"q5","cell":["lob","spread"],"type":"connect","prompt":"「限价订单簿」与「买卖价差」是什么关系？","options":[{"label":"展开为","is":"unfolds","correct":false},{"label":"涌现为(簿的状态涌现出价差)","is":"emerges","correct":true},{"label":"互不相关","is":"","correct":false}],"answer":"emerges","explain":"价差是订单簿最优买卖档直接涌现的结果，簿的不对称就是价差信号。","difficulty":2},
+    {"id":"q6","cell":["mm","adverse"],"type":"connect","prompt":"「做市」与「逆相选择」是什么关系？","options":[{"label":"约束/面临(做市天然面临逆相风险)","is":"constrains","correct":true},{"label":"实现","is":"implements","correct":false},{"label":"同型","is":"mirrors","correct":false}],"answer":"constrains","explain":"做市必须在市场挂单等待，这天然暴露给知情者——逆相选择是做市的结构性约束。","difficulty":3},
+    {"id":"q7","cell":["latency","colo"],"type":"connect","prompt":"「延迟」与「同地部署」是什么关系？","options":[{"label":"实现(同地部署是实现低延迟的手段)","is":"implements","correct":true},{"label":"约束","is":"constrains","correct":false},{"label":"互不相关","is":"","correct":false}],"answer":"implements","explain":"同地部署把服务器搬进交易所机房，是实现端到端低延迟最直接的硬件手段。","difficulty":2},
+    {"id":"q8","cell":"orderflow","type":"multi","prompt":"订单流(order flow)包含哪些事件？(多选，全对才得分)","options":[{"label":"新增限价单","correct":true},{"label":"撤单","correct":true},{"label":"成交","correct":true},{"label":"收盘结算价","correct":false}],"answer":"新增限价单 / 撤单 / 成交","explain":"订单流是逐笔到达的订单事件序列：新挂、撤单、成交。结算价不属于逐笔订单事件。","difficulty":2},
+    {"id":"q9","cell":"imbalance","type":"choice","prompt":"买卖单失衡(imbalance)对短期中间价的预测信号是？","options":[{"label":"失衡越大，短期中间价越可能反向漂移","correct":false},{"label":"买压强于卖压，中间价倾向上移","correct":true},{"label":"失衡与价格无关","correct":false}],"answer":"买压强于卖压，中间价倾向上移","explain":"失衡是微观结构最强的短期方向因子：买盘堆积=买压，推动中间价上移。","difficulty":4},
+    {"id":"q10","cell":["lob","spread","midprice"],"type":"feynman","prompt":"用自己的话解释：限价订单簿是如何同时「产生」买卖价差和中间价的？它们之间是什么关系？","answer":"LOB 最优买价 bid 与最优卖价 ask 直接构成价差(ask-bid)；中间价=(bid+ask)/2 是无成本公允估值。价差是流动性成本，中间价是估值锚。","feynman_points":["bid 和 ask 都来自簿的最优档","价差=ask-bid(流动性成本)","中间价=(bid+ask)/2(公允估值)","价差越窄流动性越高，中间价越可信"],"explain":"考查对簿-价差-中间价三位一体的结构理解。","difficulty":4}
+  ],
+  "session": {"length": 8, "shuffle": true, "review_mode": false},
+  "next": [
+    {"id":"orderflow-deep","label":"深入订单流预测","description":"失衡、撤单流、微观价格漂移的动量信号。"},
+    {"id":"mm-deep","label":"深入做市机制","description":"库存动态管理、价差随风险调宽、与知情者博弈。"},
+    {"id":"latency-deep","label":"深入延迟竞赛","description":"FPGA、内核旁路、同地部署与延迟套利边界。"},
+    {"id":"book-deep","label":"深入订单簿动力学","description":"簿重建、隐藏冰山订单、不对称性作为信号。"}
+  ]
+}

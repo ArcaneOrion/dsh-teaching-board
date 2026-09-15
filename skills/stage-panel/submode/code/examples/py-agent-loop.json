@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "py-agent-loop",
+  "title": "Agent：拆开模型、工具与状态循环",
+  "subtitle": "用可运行的 mock model 看清 Agent harness",
+  "summary": "这个最小 Agent 不调用真实模型，而是用确定性 mock 暴露控制结构：模型提出动作，harness 调工具，把观察写回状态，再让模型生成最终回答。",
+  "domain": "agent",
+  "lang": "python",
+  "level": "intro",
+  "stage": "预测 → 运行 → 跟踪状态 → 修改失败路径",
+  "objectives": [
+    "区分模型与 harness",
+    "跟踪 action/observation 状态",
+    "增加未知工具的失败处理"
+  ],
+  "prerequisites": [
+    "Python 字典、函数、循环"
+  ],
+  "starter": {
+    "filename": "agent.py",
+    "code": "def calculator(expression: str) -> str:\n    left, right = expression.split(\"+\")\n    return str(int(left) + int(right))\n\n\ndef mock_model(messages: list[dict[str, str]]) -> dict[str, str]:\n    if not any(message[\"role\"] == \"tool\" for message in messages):\n        return {\"type\": \"tool_call\", \"name\": \"calculator\", \"args\": \"20+22\"}\n    observation = messages[-1][\"content\"]\n    return {\"type\": \"final\", \"content\": f\"The answer is {observation}.\"}\n\n\ndef run_agent() -> None:\n    messages = [{\"role\": \"user\", \"content\": \"What is 20 + 22?\"}]\n    for step in range(3):\n        action = mock_model(messages)\n        print(f\"step={step} action={action['type']}\")\n        if action[\"type\"] == \"final\":\n            print(f\"answer={action['content']}\")\n            return\n        observation = calculator(action[\"args\"])\n        print(f\"tool={action['name']} observation={observation}\")\n        messages.append({\"role\": \"tool\", \"content\": observation})\n    raise RuntimeError(\"agent exceeded step limit\")\n\n\nrun_agent()\n"
+  },
+  "run": {
+    "filename": "agent.py"
+  },
+  "activities": [
+    {
+      "id": "predict-trace",
+      "type": "predict",
+      "prompt": "运行前写出你预计会出现的 action、tool observation 和 final answer 顺序。",
+      "required": true,
+      "before_run": true
+    },
+    {
+      "id": "explain-harness",
+      "type": "explain",
+      "prompt": "哪些代码属于模型决策，哪些属于 Agent harness？",
+      "required": true
+    },
+    {
+      "id": "transfer-unknown-tool",
+      "type": "transfer",
+      "prompt": "让 mock model 请求 unknown_tool，并为 harness 增加可观察的错误结果，而不是直接崩溃。",
+      "required": true
+    }
+  ],
+  "checks": [
+    {
+      "id": "exit-ok",
+      "label": "Agent 循环正常结束",
+      "type": "exit_code",
+      "expected": 0
+    },
+    {
+      "id": "tool-observation",
+      "label": "轨迹包含工具观察",
+      "type": "stdout_contains",
+      "expected": "observation=42"
+    },
+    {
+      "id": "final-answer",
+      "label": "最终答案包含 42",
+      "type": "stdout_contains",
+      "expected": "answer=The answer is 42."
+    }
+  ],
+  "hints": [
+    "模型只提出结构化动作；真正调用函数的是 harness。",
+    "工具失败也应转成 observation，让下一轮模型能够处理。"
+  ],
+  "submission": {
+    "require_run": true,
+    "require_reflection": true
+  },
+  "next": [
+    "agent-tool-schema",
+    "agent-evaluation-loop"
+  ]
+}

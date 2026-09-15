@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "id": "py-training-loop",
+  "title": "模型训练：亲手跑一次梯度下降",
+  "subtitle": "不用框架，直接观察参数、损失与预测如何更新",
+  "summary": "用纯 Python 拟合 y = 2x + 1。代码展示训练数据、前向计算、损失、梯度和参数更新之间的完整关系。",
+  "domain": "machine-learning",
+  "lang": "python",
+  "level": "intro",
+  "stage": "预测 → 训练 → 观察 → 迁移",
+  "objectives": [
+    "指出训练循环的五个组成部分",
+    "解释 loss 下降意味着什么",
+    "修改学习率并比较收敛"
+  ],
+  "prerequisites": [
+    "Python 循环和函数",
+    "导数的直觉"
+  ],
+  "starter": {
+    "filename": "train.py",
+    "code": "data = [(0.0, 1.0), (1.0, 3.0), (2.0, 5.0), (3.0, 7.0)]\n\nw = 0.0\nb = 0.0\nlr = 0.05\n\nfor step in range(201):\n    predictions = [w * x + b for x, _ in data]\n    errors = [pred - y for pred, (_, y) in zip(predictions, data)]\n    loss = sum(error ** 2 for error in errors) / len(data)\n\n    dw = 2 * sum(error * x for error, (x, _) in zip(errors, data)) / len(data)\n    db = 2 * sum(errors) / len(data)\n    w -= lr * dw\n    b -= lr * db\n\n    if step in {0, 20, 100, 200}:\n        print(f\"step={step:3d} loss={loss:.6f} w={w:.4f} b={b:.4f}\")\n\nprint(f\"prediction={w * 5 + b:.2f}\")\n"
+  },
+  "snippets": [
+    {
+      "id": "main",
+      "lang": "python",
+      "title": "最小训练循环",
+      "filename": "train.py",
+      "role": "primary",
+      "editable": true,
+      "code": "data = [(0.0, 1.0), (1.0, 3.0), (2.0, 5.0), (3.0, 7.0)]\n\nw = 0.0\nb = 0.0\nlr = 0.05\n\nfor step in range(201):\n    predictions = [w * x + b for x, _ in data]\n    errors = [pred - y for pred, (_, y) in zip(predictions, data)]\n    loss = sum(error ** 2 for error in errors) / len(data)\n\n    dw = 2 * sum(error * x for error, (x, _) in zip(errors, data)) / len(data)\n    db = 2 * sum(errors) / len(data)\n    w -= lr * dw\n    b -= lr * db\n\n    if step in {0, 20, 100, 200}:\n        print(f\"step={step:3d} loss={loss:.6f} w={w:.4f} b={b:.4f}\")\n\nprint(f\"prediction={w * 5 + b:.2f}\")\n",
+      "annotations": [
+        {
+          "line": 7,
+          "kind": "info",
+          "text": "前向计算：当前参数产生预测"
+        },
+        {
+          "line": 9,
+          "kind": "info",
+          "text": "目标函数：均方误差"
+        },
+        {
+          "line": 11,
+          "kind": "warn",
+          "text": "梯度决定参数应向哪个方向变化"
+        },
+        {
+          "line": 13,
+          "kind": "info",
+          "text": "优化器最小形式：参数减去学习率乘梯度"
+        }
+      ]
+    }
+  ],
+  "run": {
+    "snippet_id": "main",
+    "filename": "train.py"
+  },
+  "activities": [
+    {
+      "id": "predict-loss",
+      "type": "predict",
+      "prompt": "训练过程中 loss 应整体上升还是下降？w 和 b 最终应接近什么值？",
+      "required": true,
+      "before_run": true
+    },
+    {
+      "id": "trace-loop",
+      "type": "trace",
+      "prompt": "用自己的话串起：数据 → 预测 → 误差 → loss → 梯度 → 参数更新。",
+      "required": true
+    },
+    {
+      "id": "transfer-lr",
+      "type": "transfer",
+      "prompt": "把 lr 改为 0.5 和 0.005 分别运行。比较收敛速度或不稳定现象。",
+      "required": true
+    }
+  ],
+  "checks": [
+    {
+      "id": "exit-ok",
+      "label": "训练脚本正常退出",
+      "type": "exit_code",
+      "expected": 0
+    },
+    {
+      "id": "has-loss",
+      "label": "输出包含训练损失",
+      "type": "stdout_contains",
+      "expected": "loss="
+    },
+    {
+      "id": "predict-eleven",
+      "label": "模型对 x=5 的预测接近 11",
+      "type": "stdout_contains",
+      "expected": "prediction=11.00"
+    }
+  ],
+  "hints": [
+    "线性模型只有两个参数：斜率 w 和截距 b。",
+    "学习率过大可能越过最低点，过小则需要更多步。"
+  ],
+  "submission": {
+    "require_run": true,
+    "require_reflection": true
+  },
+  "next": [
+    "py-autograd",
+    "py-train-validation-split"
+  ]
+}

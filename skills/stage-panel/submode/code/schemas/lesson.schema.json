@@ -1,0 +1,225 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://localweb.dev/schemas/code.lesson.schema.json",
+  "title": "LocalWeb Code Lab Lesson",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["title", "lang"],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subtitle": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "lang": {
+      "type": "string",
+      "enum": ["python", "rust", "go"]
+    },
+    "langs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["python", "rust", "go"]
+      },
+      "description": "本课涉及的语言；跨语言对照时使用。"
+    },
+    "level": {
+      "type": "string",
+      "enum": ["intro", "intermediate", "advanced"]
+    },
+    "stage": {
+      "type": "string",
+      "description": "教学阶段标签，如 编辑练习 / 读错信息 / 对照语义"
+    },
+    "objectives": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "focus": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "concept": { "type": "string" },
+        "trap": { "type": "string" }
+      }
+    },
+    "starter": {
+      "type": "object",
+      "description": "单文件课的快速写法；与 snippets 二选一或同时提供。",
+      "required": ["code"],
+      "additionalProperties": true,
+      "properties": {
+        "filename": { "type": "string" },
+        "code": { "type": "string" }
+      }
+    },
+    "snippets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "lang", "code"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "lang": {
+            "type": "string",
+            "enum": ["python", "rust", "go"]
+          },
+          "title": { "type": "string" },
+          "filename": { "type": "string" },
+          "code": { "type": "string" },
+          "role": {
+            "type": "string",
+            "enum": ["primary", "contrast", "solution", "tests"],
+            "default": "primary"
+          },
+          "editable": {
+            "type": "boolean",
+            "default": false
+          },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["line", "text"],
+              "additionalProperties": true,
+              "properties": {
+                "line": { "type": "integer", "minimum": 1 },
+                "kind": {
+                  "type": "string",
+                  "enum": ["info", "move", "error", "alias", "hint", "warn"]
+                },
+                "text": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "run": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "snippet_id": {
+          "type": "string",
+          "description": "默认展示哪个 snippet；缺省取 role=primary 或 starter。"
+        },
+        "filename": { "type": "string" }
+      }
+    },
+    "compare": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "axes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["lang", "cells"],
+            "additionalProperties": true,
+            "properties": {
+              "lang": { "type": "string" },
+              "cells": {
+                "type": "array",
+                "items": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "trace": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "title"],
+            "additionalProperties": true,
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "focus_snippet": { "type": "string" },
+              "lines": {
+                "type": "array",
+                "items": { "type": "integer", "minimum": 1 }
+              },
+              "note": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "exercises": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "prompt"],
+        "additionalProperties": true,
+        "properties": {
+          "id": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": [
+              "predict_output",
+              "spot_bug",
+              "fix_code",
+              "short",
+              "choice"
+            ]
+          },
+          "prompt": { "type": "string" },
+          "hint": { "type": "string" },
+          "snippet_id": { "type": "string" },
+          "choices": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "label"],
+              "properties": {
+                "id": { "type": "string" },
+                "label": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "hints": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "solution": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "默认不渲染；由 agent 决定是否展示。",
+      "properties": {
+        "code": { "type": "string" },
+        "explanation": { "type": "string" }
+      }
+    },
+    "next": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

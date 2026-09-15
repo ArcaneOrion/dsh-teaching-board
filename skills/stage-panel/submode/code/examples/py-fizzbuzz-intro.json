@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "id": "py-fizzbuzz-intro",
+  "title": "Python：先跑起来再改 FizzBuzz",
+  "subtitle": "用一次成功运行建立 Code Lab 手感",
+  "lang": "python",
+  "langs": [
+    "python"
+  ],
+  "level": "intro",
+  "stage": "编辑 → 运行 → 改输出",
+  "summary": "先让脚本打印 1..15 的 FizzBuzz，再按练习改规则。运行在本机 python3 上完成。",
+  "objectives": [
+    "成功运行 starter 并看到输出",
+    "把 15 的倍数改成同时打印 FizzBuzz",
+    "向导师说明 if 顺序为什么重要"
+  ],
+  "focus": {
+    "concept": "control-flow",
+    "trap": "wrong-if-order"
+  },
+  "starter": {
+    "filename": "main.py",
+    "code": "def fizzbuzz(n: int) -> str:\n    if n % 3 == 0:\n        return \"Fizz\"\n    if n % 5 == 0:\n        return \"Buzz\"\n    return str(n)\n\n\nif __name__ == \"__main__\":\n    for i in range(1, 16):\n        print(fizzbuzz(i))\n"
+  },
+  "snippets": [
+    {
+      "id": "main",
+      "lang": "python",
+      "title": "FizzBuzz starter",
+      "filename": "main.py",
+      "role": "primary",
+      "editable": true,
+      "code": "def fizzbuzz(n: int) -> str:\n    if n % 3 == 0:\n        return \"Fizz\"\n    if n % 5 == 0:\n        return \"Buzz\"\n    return str(n)\n\n\nif __name__ == \"__main__\":\n    for i in range(1, 16):\n        print(fizzbuzz(i))\n",
+      "annotations": [
+        {
+          "line": 2,
+          "kind": "warn",
+          "text": "只判断 %3 时，15 会过早返回 Fizz"
+        },
+        {
+          "line": 10,
+          "kind": "info",
+          "text": "入口：打印 1..15"
+        }
+      ]
+    }
+  ],
+  "run": {
+    "snippet_id": "main",
+    "filename": "main.py"
+  },
+  "exercises": [
+    {
+      "id": "e1",
+      "type": "predict_output",
+      "prompt": "当前实现对 15 会打印什么？",
+      "snippet_id": "main"
+    },
+    {
+      "id": "e2",
+      "type": "fix_code",
+      "prompt": "改到 15 打印 FizzBuzz，且 3/5 仍正确。",
+      "snippet_id": "main"
+    }
+  ],
+  "hints": [
+    "先处理 n % 15 == 0（或同时整除 3 与 5）。",
+    "改完点「运行」，看 1..15 整表。"
+  ],
+  "next": [
+    "py-list-comprehension"
+  ]
+}

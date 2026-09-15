@@ -1,0 +1,57 @@
+{
+  "schema_version": 2,
+  "id": "securities-law",
+  "title": "证券法律基础——从披露主轴到三轨责任",
+  "subtitle": "以证券法律定义为底座，展开发行/披露/禁止行为/责任救济四个面（中国法为主，对照美国法）",
+  "domain": "证券法与市场规制",
+  "summary": "中国《证券法》为主、关键处对照美国 1933/1934 法与 Rule 10b-5。以『信息披露义务』为主轴逐题主动回忆：注册制、内幕交易、市场操纵、虚假陈述、第95条特别代表人诉讼。答错进错题本、掌握度累积、费曼题回传 CLI 判定。",
+  "cells": [
+    {"id":"securities","label":"证券的法律定义","brief":"《证券法》第2条列举的资本证券——股票、债券、存托凭证及国务院依法认定的其他证券。界定『什么是证券』决定整部法律的射程。美国以 Howey 测试判定投资合同：资金投入+共同企业+利润预期+依赖他人努力。","example":"中概股以 ADR 存托凭证在美上市，属『其他证券』；一份『保本理财』若同时满足 Howey 四要素，在美国也可能被认定为证券而受证券法约束。","difficulty":2,"tags":["core"]},
+    {"id":"investor","label":"投资者","brief":"证券法倾斜保护的相对方。区分专业投资者与普通投资者（散户），直接影响适当性义务与举证规则。","example":"个人散户属普通投资者，享有风险测评与适当性匹配保护；私募基金仅限合格投资者认购。","difficulty":2,"tags":["protect"],"prereq":["securities"]},
+    {"id":"disclosure","label":"信息披露义务","brief":"证券法的『主轴』——真实、准确、完整、及时地公开重大信息。含发行披露（招股说明书）与持续披露（定期报告+临时报告），贯穿证券整个生命周期。","example":"上市公司年报虚增利润3亿——披露义务违反，构成虚假陈述，触发民事赔偿与行政处罚。","difficulty":3,"tags":["core"],"prereq":["securities"]},
+    {"id":"regulator","label":"证监会监管体制","brief":"国务院证券监督管理机构对证券市场实行集中统一监督管理，行使规则制定、注册/核准、稽查与行政处罚权。美国对应 SEC。交易所等自律组织承担一线监管。","example":"证监会稽查立案→行政处罚→涉嫌犯罪移送公安；交易所实时监控系统发现异常交易自动上报。","difficulty":2,"tags":["enforce"],"prereq":["securities"]},
+    {"id":"issuance","label":"证券发行与公开发行","brief":"向不特定对象发行、或向特定对象发行累计超过200人，即为公开发行，须经注册（注册制下）/核准。证券进入一级市场的法律入口。","example":"IPO 向不特定公众发行股票属公开发行，须提交注册申请与招股说明书，未经注册不得公开发行。","difficulty":3,"tags":["primary"],"prereq":["disclosure"]},
+    {"id":"mnpi","label":"内幕信息","brief":"涉及公司经营或财务的、尚未公开的、对证券交易价格有重大影响的信息。内幕交易法律构成的客体，其『未公开+价格敏感』两要素源自披露义务中『该公开而未公开』的维度。","example":"公司拟定重大并购但尚未公告——典型内幕信息；知情人在公告前买卖即构成内幕交易。","difficulty":3,"tags":["insider"],"prereq":["disclosure"]},
+    {"id":"manipulation","label":"市场操纵","brief":"以不正当手段人为影响证券交易价格或量，破坏价格真实性。典型手段：连续交易、对敲（self-match）、蛊惑交易、抢帽子、尾盘拉抬。","example":"控盘账户之间对倒制造虚假成交→吸引散户跟风→高位出货，是典型操纵获利路径。","difficulty":4,"tags":["market"],"prereq":["disclosure"]},
+    {"id":"fraud","label":"虚假陈述/证券欺诈","brief":"发行人或相关责任主体在披露文件或交易中作虚假记载、误导性陈述或重大遗漏。欺诈的法律本质是对法定信息披露义务的违反。美国 Rule 10b-5 覆盖对应行为。","example":"定期报告少记负债3亿——重大遗漏型虚假陈述；招股书虚增收入则构成发行欺诈，可被撤销发行。","difficulty":3,"tags":["fraud"],"prereq":["disclosure"]},
+    {"id":"registration","label":"注册制与核准制","brief":"注册制：以信息披露为中心，审核机构做合规/形式审查，不替投资者判断投资价值，投资者自担风险。核准制：实质审核投资价值。中国2023年全面实行注册制。","example":"科创板注册制下，交易所问询披露的充分性与一致性，证监会注册但不对『这家公司值不值得买』背书。","difficulty":4,"tags":["primary"],"prereq":["issuance"]},
+    {"id":"prospectus","label":"招股说明书","brief":"发行人信息披露的核心法律文件，记载风险因素、财务、业务、募投用途等。招股书存在虚假记载/重大遗漏即触发发行欺诈责任，是发行欺诈最直接的载体。","example":"招股书虚增收入2亿——构成发行欺诈，发行可被撤销，发行人与保荐人/承销商连带赔偿投资者。","difficulty":3,"tags":["primary"],"prereq":["disclosure","issuance"]},
+    {"id":"insider","label":"内幕交易","brief":"内幕信息知情人或非法获取人，利用内幕信息买卖、泄露或建议他人买卖证券。法律本质是对信息不对称的滥用。","example":"董秘在并购公告前买入公司股票——内幕交易，没收违法所得+罚款，并可能承担民事与刑事责任。","difficulty":4,"tags":["insider"],"prereq":["mnpi"]},
+    {"id":"liability","label":"三轨责任","brief":"证券违法并行承担行政责任（罚款/市场禁入）、民事责任（赔偿投资者损失）、刑事责任（欺诈发行罪/内幕交易罪/操纵证券市场罪）。三者不互替，且民事赔偿优先于行政罚款与没收。","example":"操纵市场者既被证监会罚没5亿，又被投资者集体起诉索赔，还可能被追究操纵证券市场罪。","difficulty":3,"tags":["liability"],"prereq":["fraud"]},
+    {"id":"suitability","label":"投资者适当性义务","brief":"卖方机构须『了解你的客户』(KYC) 与『了解你的产品』(KYP) 并做风险匹配，把合适的产品卖给合适的投资者。是合同成立前的投资者保护，违反致损须赔偿。","example":"银行把高风险结构衍生品卖给风险测评为保守型的老年人——违反适当性，应赔偿其损失。","difficulty":3,"tags":["protect"],"prereq":["investor"]},
+    {"id":"classaction","label":"特别代表人诉讼","brief":"新《证券法》第95条第3款：投资者保护机构受50人以上委托可启动特别代表人诉讼，采『默示加入、明示退出』——投资者不主动退出即自动成为原告，把分散散户索赔聚合成巨额诉讼，指数级放大违法成本。","example":"康美药业案：5.2万名投资者默示加入，法院判赔24.59亿元，为首单特别代表人诉讼。","difficulty":5,"tags":["liability"],"prereq":["liability"]}
+  ],
+  "relations": [
+    {"from":"prospectus","to":"fraud","label":"触发发行欺诈","kind":"emerges"},
+    {"from":"insider","to":"investor","label":"侵害","kind":"constrains"},
+    {"from":"fraud","to":"investor","label":"误导","kind":"constrains"},
+    {"from":"manipulation","to":"investor","label":"收割","kind":"constrains"},
+    {"from":"liability","to":"insider","label":"追究","kind":"constrains"},
+    {"from":"liability","to":"manipulation","label":"追究","kind":"constrains"},
+    {"from":"classaction","to":"investor","label":"代为求偿","kind":"implements"},
+    {"from":"regulator","to":"disclosure","label":"强制披露","kind":"constrains"},
+    {"from":"registration","to":"disclosure","label":"以披露为中心","kind":"depends"},
+    {"from":"suitability","to":"investor","label":"匹配保护","kind":"constrains"}
+  ],
+  "questions": [
+    {"id":"q1","cell":"securities","type":"choice","prompt":"关于《证券法》第2条对『证券』的界定，下列哪项正确？","options":[{"label":"采列举+兜底，股票、债券、存托凭证及国务院认定的其他证券均纳入","correct":true},{"label":"任何能带来收益的投资工具都自动构成《证券法》上的证券","correct":false},{"label":"证券范围与投资者保护无关，仅是分类标签","correct":false}],"answer":"采列举+兜底，股票、债券、存托凭证及国务院认定的其他证券均纳入","explain":"第2条采列举+兜底条款，证券范围决定法律射程；不是『能赚钱就是证券』。美国用 Howey 测试（资金投入+共同企业+利润预期+依赖他人努力）判定投资合同是否为证券。","difficulty":2},
+    {"id":"q2","cell":"disclosure","type":"choice","prompt":"上市公司信息披露义务的核心法定要求是？","options":[{"label":"真实、准确、完整、及时","correct":true},{"label":"只要年报经会计师事务所审计，公司即不承担责任","correct":false},{"label":"以自愿披露为主、强制性披露为辅","correct":false}],"answer":"真实、准确、完整、及时","explain":"披露四要素是法定强制底线；经审计并非免责事由（审计只针对财务报表，不豁免公司整体披露责任）；持续披露以强制为主。","difficulty":2},
+    {"id":"q3","cell":"registration","type":"choice","prompt":"关于注册制与核准制的根本区别，正确的是？","options":[{"label":"注册制以信息披露为中心，审核机构做合规/形式审查、不替投资者判断投资价值；核准制做实质审核","correct":true},{"label":"注册制等于不审核，交了材料就能发行","correct":false},{"label":"注册制由投资者投票决定能否发行上市","correct":false}],"answer":"注册制以信息披露为中心，审核机构做合规/形式审查、不替投资者判断投资价值；核准制做实质审核","explain":"注册制≠不审，而是审『披露是否真实、准确、完整、充分』，不替投资者判断『值不值得买』；旧核准制（发审委）判断投资价值。中国2023年全面注册制。","difficulty":4},
+    {"id":"q4","cell":"insider","type":"choice","prompt":"依《证券法》第50-53条，构成内幕交易的核心隐含要件是？","options":[{"label":"掌握对价格有重大影响且尚未公开的信息，并据此买卖、泄露或建议他人买卖","correct":true},{"label":"行为人必须是公司的董事、监事或高级管理人员","correct":false},{"label":"必须已造成其他投资者实际亏损","correct":false}],"answer":"掌握对价格有重大影响且尚未公开的信息，并据此买卖、泄露或建议他人买卖","explain":"内幕交易三要素：内幕信息（未公开+价格敏感）+ 内幕知情人或非法获取人 + 买卖/泄露/建议。范围含非法获取人，不限于董监高，也不要求造成他人实际亏损。","difficulty":3},
+    {"id":"q5","cell":["fraud","disclosure"],"type":"connect","prompt":"『虚假陈述』与『信息披露义务』是什么关系？","options":[{"label":"涌现（披露义务的履行涌现出陈述）","is":"emerges","correct":false},{"label":"违反/约束（虚假陈述本质是对法定披露义务的违反）","is":"constrains","correct":true},{"label":"互不相关","is":"","correct":false}],"answer":"constrains","explain":"虚假陈述责任建立在披露义务之上——没有法定披露义务就无所谓『虚假陈述』；它是披露义务的违反（积极违反：披露了假内容；消极违反：重大遗漏）。","difficulty":3},
+    {"id":"q6","cell":["insider","mnpi"],"type":"connect","prompt":"『内幕交易』与『内幕信息』是什么关系？","options":[{"label":"依赖（内幕交易以掌握内幕信息为前提）","is":"depends","correct":true},{"label":"实现","is":"implements","correct":false},{"label":"同型","is":"mirrors","correct":false}],"answer":"depends","explain":"内幕信息是内幕交易的客体与前提；仅有身份（如董监高）而无内幕信息不构成内幕交易，反之掌握了内幕信息并交易才进入该罪名射程。","difficulty":3},
+    {"id":"q7","cell":"manipulation","type":"multi","prompt":"下列哪些属于《证券法》禁止的市场操纵手段？（多选，全对才得分）","options":[{"label":"连续买卖拉抬或打压价格","correct":true},{"label":"账户间对敲、自我成交制造虚假成交","correct":true},{"label":"抢帽子：先建仓再公开发布推荐诱导跟风后出货","correct":true},{"label":"基于已公开研究报告的正常买入","correct":false}],"answer":"连续交易 / 对敲 / 抢帽子","explain":"操纵典型手段含连续交易、对敲（self-match 实际成交的洗售）、抢帽子等；基于已公开信息的正常交易不构成操纵——操纵的核心是『人为』影响价量、制造虚假供求。","difficulty":3},
+    {"id":"q8","cell":"classaction","type":"choice","prompt":"新《证券法》第95条第3款『特别代表人诉讼』的核心机制是？","options":[{"label":"默示加入、明示退出（投资者不主动退出即自动成为原告）","correct":true},{"label":"明示加入（每个投资者须主动登记才参加）","correct":false},{"label":"由证监会对投资者直接赔付","correct":false}],"answer":"默示加入、明示退出（投资者不主动退出即自动成为原告）","explain":"第95条第3款反转了传统代表人诉讼『明示加入』的逻辑为『默示加入、明示退出』，使原告规模可指数放大。康美案5.2万人、判赔24.59亿即据此机制，极大提升违法成本。","difficulty":5},
+    {"id":"q9","cell":"suitability","type":"choice","prompt":"投资者适当性义务的法律意涵是？","options":[{"label":"卖方机构须了解客户并匹配风险，把合适产品卖给合适投资者","correct":true},{"label":"仅指让客户在风险揭示书上签字","correct":false},{"label":"只针对私募基金销售","correct":false}],"answer":"卖方机构须了解客户并匹配风险，把合适产品卖给合适投资者","explain":"适当性=KYC（了解客户）+KYP（了解产品）+风险匹配。《九民纪要》第72条明确卖方未尽适当性致投资者损失须赔偿。不只签字，且覆盖公募销售。","difficulty":3},
+    {"id":"q10","cell":["disclosure","fraud","insider"],"type":"feynman","prompt":"用自己的话解释：为什么『信息披露义务』被称为证券法的『主轴』？它在『虚假陈述』和『内幕交易』这两种违法行为中分别扮演什么角色？","answer":"披露义务贯穿发行披露与持续披露，是其他义务的来源。虚假陈述=直接违反披露义务（披露了但内容是假的或漏了重大事项）；内幕交易=滥用『该披露而未披露』的内幕信息（知情人借信息不对称获利）。二者一体两面，共享『信息』这一法治支点：一个造假，一个吃信息差。","feynman_points":["披露义务贯穿发行披露+持续披露两个阶段","虚假陈述是披露义务的积极违反（披露了虚假/误导内容或重大遗漏）","内幕交易是对未披露重大信息的滥用（吃信息差）","两者共享信息这一支点：披露义务一个被造假、一个被利用"],"explain":"考查披露义务作为主轴的统领性，以及欺诈与内幕在信息维度的一体两面。","difficulty":4},
+    {"id":"q11","cell":"liability","type":"choice","prompt":"依《证券法》，投资者民事赔偿与行政罚款、没收违法所得在财产上发生冲突时的清偿顺位是？","options":[{"label":"民事赔偿优先（财产不足时先赔付投资者）","correct":true},{"label":"行政罚款优先入库","correct":false},{"label":"平均分配","correct":false}],"answer":"民事赔偿优先（财产不足时先赔付投资者）","explain":"《证券法》第220条：民事赔偿优先于罚款、没收的财产。当违法者财产不足以同时支付时，先赔投资者，体现『投资者保护优先于国库收入』的立法取向。","difficulty":3},
+    {"id":"q12","cell":["classaction","liability"],"type":"connect","prompt":"『特别代表人诉讼』与『三轨责任』是什么关系？","options":[{"label":"实现/放大（把民事赔偿这条轨道的威力指数放大）","is":"implements","correct":true},{"label":"约束","is":"constrains","correct":false},{"label":"同型","is":"mirrors","correct":false}],"answer":"implements","explain":"特别代表人诉讼是民事责任轨道的『集体化』实现机制，把分散散户的小额索赔聚合成巨额集团诉讼，使民事赔偿这条轨道从『象征性』变为『威慑性』。","difficulty":4}
+  ],
+  "session": {"length": 8, "shuffle": true, "review_mode": false},
+  "next": [
+    {"id":"insider-deep","label":"深入内幕交易认定","description":"内幕信息重大性标准、知情人范围扩张、非法获取人、泄露与建议买卖的责任边界。"},
+    {"id":"disclosure-deep","label":"深入信息披露义务","description":"重大性标准、临时报告触发事件、预测性信息与安全港规则、豁免情形。"},
+    {"id":"litigation-deep","label":"深入证券民事赔偿","description":"责任主体顺位（发行人/董监高/保荐承销/会所律所）、过错推定与举证倒置、损失与因果关系计算。"},
+    {"id":"us-compare","label":"中美证券法对照","description":"Rule 10b-5 反欺诈、SEC 执法体制、美国 Rule 23 集团诉讼 vs 第95条特别代表人诉讼的机制差异。"}
+  ]
+}

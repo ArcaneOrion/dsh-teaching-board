@@ -16,7 +16,7 @@ dsh plugin --profile web add @arcaneorion/dsh-teaching-board
 它是一个 **profile 级 bundle**：装一次，这个进程里所有会话都拿得到 `stage_*` 工具与「教学平面」页签。
 （`dsh plugin add` 会把依赖与 bundles 条目一起写进该 profile 的 manifest。）
 
-> **发布状态**：`@arcaneorion/dsh-teaching-board` 已发布（`0.4.0` 于 2026-09-15 10:17 CST 上线，当前 `0.4.1`）。
+> **发布状态**：`@arcaneorion/dsh-teaching-board` 已发布（`0.4.0` 于 2026-09-15 10:17 CST 上线，当前 `0.5.0`）。
 > 改名前的 `@arcaneorion/dsh-stage-panel@0.1.0` 仍在 registry 上，对应本仓早期版本——**别再用**，
 > 装它只会拿到残缺面板（`npm deprecate @arcaneorion/dsh-stage-panel "renamed to @arcaneorion/dsh-teaching-board"` 可让老名字自己说明去向）。
 
@@ -44,6 +44,7 @@ dsh plugin --profile web add @arcaneorion/dsh-teaching-board
 | 截图交给 agent | client（父层） | PNG → `conversation.createDraftImages` → `inputActions.addImages` → 草稿图片 |
 | agent 主动截图 | host 工具 + client 监听 | `stage_snapshot` 工具 → client 从快照看到调用 → 拍图 → 作为用户消息提交 |
 | 状态条 / 方向选择 | host 工具 | `stage_status` / `stage_choice` |
+| 自带使用手册 | host（`src/skills.js`） | 插件把包内 `skills/stage-panel/` 注册成 bundled skill：挂上插件就有纪律，任何 preset 都无需另外安装 |
 
 ## 架构：两条硬约束
 
@@ -63,14 +64,18 @@ dsh plugin --profile web add @arcaneorion/dsh-teaching-board
 | 文件 | 说明 |
 |---|---|
 | `src/index.js` | host 半：`stage_panel / stage_status / stage_choice / stage_snapshot` 四个无状态工具 |
+| `src/skills.js` | host 半：把包内 `skills/stage-panel/` 注册成 bundled skill（provider 模式，随 fiber 注销） |
+| `skills/stage-panel/` | 行为层：使用手册 `SKILL.md` + 选型/布局/视觉三份规范 + 五个素材库 |
 | `src/client.js` | client 半：「教学平面」视图（工具栏 + 注入 runtime + 截图交付 + agent 请求监听） |
 | `package.json` / `cordis.patch.yml` | bundle 声明（行 id `teaching-board`），挂载进 `web` profile |
 | `PROTOTYPE-*.js` | 早期动态原型（`lwst-2`）存档，仅供历史参考 |
 
 ## 分层
 
-- **能力层（本 bundle，profile 级）**：投影 + 勾画 + 截图 + 工具。
-- **行为层（preset `arcane-stage-panel`）**：教学模式纪律、内容规范（图型/HTML 模式/视觉风格）。
+- **能力层（本 bundle，profile 级）**：投影 + 勾画 + 截图 + 四个 `stage_*` 工具。
+- **行为层（同一 bundle 自带）**：`skills/stage-panel/` —— 使用手册、选型/布局/视觉三份规范、五个素材库；插件 `apply` 时以 provider 方式注册进 `ctx.skills`（`skill-filesystem` 只扫固定的本地根目录，扫不到包内文件，所以必须由插件自己发布）。
+
+  > 旧布局把行为层放在 preset `arcane-stage-panel` 的 `skills/` 里：教学平面会话拿得到，**其余会话停在「有工具、没纪律」**。现已合并进插件——一份手册，所有挂载本插件的会话都能读到。
 
 ## 板面模型：一块板 = 一个主题
 

@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "id": "go-http-api-basics",
+  "title": "Go 调用 API：逐行注释版",
+  "subtitle": "每行都有注释，零基础看懂",
+  "summary": "Go 完全零基础：每行代码都有中文注释，先运行看输出，再改参数，最后解释。",
+  "domain": "deployment",
+  "lang": "go",
+  "level": "intro",
+  "objectives": [
+    "看懂 Go 基本语法",
+    "理解调 API 的代码结构"
+  ],
+  "starter": {
+    "filename": "main.go",
+    "code": "package main\n\nimport (\n\t\"bytes\"\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequestBody := map[string]interface{}{\n\t\t\"model\": \"gpt-4o-mini\",\n\t\t\"messages\": []map[string]string{\n\t\t\t{\"role\": \"user\", \"content\": \"你好\"},\n\t\t},\n\t}\n\tjsonBody, err := json.Marshal(requestBody)\n\tif err != nil {\n\t\tfmt.Println(\"JSON失败:\", err)\n\t\treturn\n\t}\n\tfmt.Println(\"JSON:\", string(jsonBody))\n\turl := \"https://api.alice001.top/v1/chat/completions\"\n\treq, err := http.NewRequest(\"POST\", url, bytes.NewReader(jsonBody))\n\tif err != nil {\n\t\tfmt.Println(\"构造请求失败:\", err)\n\t\treturn\n\t}\n\tfmt.Println(\"方法:\", req.Method)\n\tfmt.Println(\"地址:\", req.URL)\n\treq.Header.Set(\"Content-Type\", \"application/json\")\n\treq.Header.Set(\"Authorization\", \"Bearer sk-test\")\n\tfmt.Println(\"头:\", req.Header)\n}\n"
+  },
+  "run": {},
+  "activities": [
+    {
+      "id": "predict-output",
+      "type": "predict",
+      "prompt": "运行前预测：JSON 那行输出长什么样？方法、地址各是什么？",
+      "required": true,
+      "before_run": true
+    },
+    {
+      "id": "run-and-observe",
+      "type": "trace",
+      "prompt": "点运行，看输出和预测对比。",
+      "required": false
+    },
+    {
+      "id": "change-content",
+      "type": "implement",
+      "prompt": "把 content 的 你好 改成 你是谁，再运行，看 JSON 哪行变了。",
+      "required": true
+    },
+    {
+      "id": "explain-steps",
+      "type": "explain",
+      "prompt": "用自己的话说：这段代码从上到下做了哪几件事？",
+      "required": true
+    }
+  ],
+  "checks": [
+    {
+      "id": "check-runs",
+      "label": "代码能编译运行",
+      "type": "exit_code",
+      "expected": 0
+    }
+  ],
+  "submission": {
+    "require_run": true,
+    "require_reflection": true
+  }
+}

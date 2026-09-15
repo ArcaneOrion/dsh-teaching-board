@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "id": "template-showcase",
+  "title": "Learn 模板通用预览",
+  "subtitle": "展示概念卡、结构图、例子、练习和下一步选择如何组合，而不是绑定某个具体学科",
+  "stage": "模板展示",
+  "summary": "这个面板用于预览 learn 模板的通用信息结构：左侧放学习目标和可翻面的概念卡，右侧放关系图、例子、主动回忆题和可点击的下一步。",
+  "objectives": [
+    "快速看出本模板适合承载哪些学习信息",
+    "点击概念卡查看背面补充信息",
+    "通过结构图理解内容之间的关系",
+    "用下一步卡片表达后续学习方向"
+  ],
+  "concepts": [
+    {
+      "term": "核心概念",
+      "definition": "放置当前主题最关键的定义、直觉或判断标准。",
+      "back": "背面适合补充边界条件、常见误解、记忆钩子或一个更贴近日常语言的解释。",
+      "note": "适合短定义，不适合塞长段落。"
+    },
+    {
+      "term": "关键关系",
+      "definition": "说明几个概念之间如何连接，例如依赖、因果、转换或约束。",
+      "back": "如果关系本身比概念更重要，应优先在结构图里表达，再用概念卡解释节点含义。",
+      "note": "关系可以是流程、推导链、调用链或协议时序。"
+    },
+    {
+      "term": "学习动作",
+      "definition": "让用户做一个低成本动作，例如解释、选择、排序、标注或写出卡点。",
+      "back": "交互不应该为了热闹而存在；只有当它能帮助 CLI 判断下一步教学时，才需要回传。",
+      "note": "纯展示也是有效面板。"
+    }
+  ],
+  "structure": {
+    "diagram": "            [前提 P1] ──┐\n                         ├── 推出 ──> [结论 C]\n            [前提 P2] ──┘\n                           ▲\n                           │ 支持\n                      [证据 E]\n\n            [反例 X] ──反驳/限制──> [结论 C]\n\n            [边界 B] ──限定适用范围──> [结论 C]",
+    "nodes": [
+      {
+        "id": "context",
+        "label": "背景入口",
+        "kind": "prerequisite",
+        "detail": "用户已经知道或刚刚建立的前置语境"
+      },
+      {
+        "id": "concept",
+        "label": "当前主题",
+        "kind": "current",
+        "detail": "本轮解释真正要讲清楚的对象"
+      },
+      {
+        "id": "activity",
+        "label": "学习动作",
+        "kind": "support",
+        "detail": "题目、标注、排序、推导或对比"
+      },
+      {
+        "id": "signal",
+        "label": "用户信号",
+        "kind": "warning",
+        "detail": "答案、信心、卡点或下一步偏好"
+      },
+      {
+        "id": "next",
+        "label": "后续路径",
+        "kind": "next",
+        "detail": "CLI 根据用户信号决定继续讲、换例子或进入练习"
+      }
+    ],
+    "edges": [
+      {
+        "from": "context",
+        "to": "concept",
+        "label": "铺垫"
+      },
+      {
+        "from": "concept",
+        "to": "activity",
+        "label": "转成练习"
+      },
+      {
+        "from": "activity",
+        "to": "signal",
+        "label": "暴露理解"
+      },
+      {
+        "from": "signal",
+        "to": "next",
+        "label": "决定走向"
+      }
+    ]
+  },
+  "examples": [
+    {
+      "title": "适合的内容",
+      "type": "example",
+      "body": "概念解释、API 行为、代码执行路径、协议流程、证明结构、调试排查和方案对比，都可以使用这套结构做可视化学习面板。"
+    },
+    {
+      "title": "不适合硬套",
+      "type": "counterexample",
+      "body": "如果内容需要代码沙盒、密集图谱、长表格、时间轴或自由画布，就应该生成自定义 HTML panel，而不是硬套这个 lesson 模板。"
+    }
+  ],
+  "questions": [
+    {
+      "id": "fit",
+      "type": "choice",
+      "prompt": "这个学习内容更适合哪种展示方式？",
+      "options": [
+        {
+          "id": "concept",
+          "label": "概念卡 + 关系图"
+        },
+        {
+          "id": "timeline",
+          "label": "时间线 / 时序图"
+        },
+        {
+          "id": "custom",
+          "label": "完全自定义 panel"
+        }
+      ],
+      "hint": "先看内容的认知结构，而不是先选模板。"
+    },
+    {
+      "id": "missing",
+      "type": "short",
+      "prompt": "这个模板还缺哪一种学习交互？"
+    }
+  ],
+  "next": [
+    {
+      "id": "custom-panel",
+      "label": "改成自定义 panel",
+      "description": "当内容不适合 lesson 结构时，直接生成专用 HTML。"
+    },
+    {
+      "id": "more-blocks",
+      "label": "增加内容块",
+      "description": "加入推导链、代码路径、时间线、对比矩阵等 block。"
+    },
+    {
+      "id": "simplify",
+      "label": "压缩模板",
+      "description": "减少默认栏目，只保留本轮学习真正需要的信息。"
+    }
+  ]
+}

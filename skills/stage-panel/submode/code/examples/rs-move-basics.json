@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "id": "rs-move-basics",
+  "title": "Rust move：为什么 s 不能再读",
+  "subtitle": "用一次编译失败学会所有权转移",
+  "lang": "rust",
+  "level": "intro",
+  "stage": "编辑 → 运行 → 读编译错误",
+  "summary": "Rust 默认 move。String 被赋值给另一个变量后，旧名字不能再使用；编译器在运行前拦住 use-after-move。Python 同一写法只是多了一个引用名。",
+  "objectives": [
+    "指出哪一行发生 move",
+    "根据 E0382 说明为什么第 3 行非法",
+    "用一句话对比 Python 的引用语义"
+  ],
+  "focus": {
+    "concept": "ownership-move",
+    "trap": "use-after-move"
+  },
+  "starter": {
+    "filename": "main.rs",
+    "code": "fn main() {\n    let s = String::from(\"hi\");\n    let t = s;\n    println!(\"{s}\");\n}\n"
+  },
+  "snippets": [
+    {
+      "id": "main",
+      "lang": "rust",
+      "title": "会编译失败的例子",
+      "filename": "main.rs",
+      "role": "primary",
+      "editable": true,
+      "code": "fn main() {\n    let s = String::from(\"hi\");\n    let t = s;\n    println!(\"{s}\");\n}\n",
+      "annotations": [
+        {
+          "line": 2,
+          "kind": "info",
+          "text": "在堆上创建 String，s 拥有它"
+        },
+        {
+          "line": 3,
+          "kind": "move",
+          "text": "所有权从 s 移到 t，s 失效"
+        },
+        {
+          "line": 4,
+          "kind": "error",
+          "text": "use after move → 编译期 E0382"
+        }
+      ]
+    }
+  ],
+  "run": {
+    "snippet_id": "main",
+    "filename": "main.rs"
+  },
+  "trace": {
+    "steps": [
+      {
+        "id": "s1",
+        "title": "创建 s",
+        "focus_snippet": "main",
+        "lines": [
+          2
+        ],
+        "note": "s 拥有堆上的 String。"
+      },
+      {
+        "id": "s2",
+        "title": "move 到 t",
+        "focus_snippet": "main",
+        "lines": [
+          3
+        ],
+        "note": "赋值转移所有权，不是共享。"
+      },
+      {
+        "id": "s3",
+        "title": "再读 s",
+        "focus_snippet": "main",
+        "lines": [
+          4
+        ],
+        "note": "编译器拒绝；可改为用 t，或 s.clone()，或只传 &s。"
+      }
+    ]
+  },
+  "exercises": [
+    {
+      "id": "e1",
+      "type": "spot_bug",
+      "prompt": "标出会触发 use-after-move 的那一行（相对 main 片段）。",
+      "snippet_id": "main",
+      "hint": "move 发生在赋值之后的下一次使用。"
+    },
+    {
+      "id": "e2",
+      "type": "fix_code",
+      "prompt": "改到能编译并打印 hi。至少一种：打印 t、clone、或借用。",
+      "snippet_id": "main"
+    },
+    {
+      "id": "e3",
+      "type": "short",
+      "prompt": "为什么 Python 对照片段能直接 print(s)？"
+    }
+  ],
+  "hints": [
+    "先让 rustc 报错，再读 error code，比背规则快。",
+    "Copy 类型（如 i32）赋值是复制，不会 move；String 不是 Copy。"
+  ],
+  "solution": {
+    "code": "fn main() {\n    let s = String::from(\"hi\");\n    let t = s.clone();\n    println!(\"{s}\");\n    println!(\"{t}\");\n}\n",
+    "explanation": "clone 显式复制堆数据；或直接 println!(\"{t}\") 使用新主人；需要共享只读时用 &s。"
+  },
+  "next": [
+    "rs-borrow-intro",
+    "rs-copy-vs-clone"
+  ]
+}
