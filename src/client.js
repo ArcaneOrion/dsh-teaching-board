@@ -97,8 +97,49 @@ window.__ModuleLoader__.load({
   }
   function count() { send({ __stagePanel: true, type: 'ink', strokes: strokes.length, data: strokes }); }
 
+  var INTERACTIVE = 'a[href],button,input,select,textarea,label,summary,[role="button"],[onclick],[contenteditable="true"]';
+
+  /** 画笔模式下点到控件：把这次点击转发给控件，而不是画一条线。
+   *  这样「偶尔画、偶尔点」不需要来回切模式。 */
+  function forwardClick(x, y) {
+    var prev = cv.style.pointerEvents;
+    cv.style.pointerEvents = 'none';
+    var el = null;
+    try { el = document.elementFromPoint(x, y); } catch (e) { el = null; }
+    cv.style.pointerEvents = prev;
+    if (!el || el === cv) return false;
+    var hit = null;
+    try { hit = el.closest ? el.closest(INTERACTIVE) : null; } catch (e) { hit = null; }
+    if (!hit) return false;
+    try { hit.click(); } catch (e) {}
+    return true;
+  }
+
+  // ── 增量：把新到的 op 原地打进自己的 DOM（不重载、不丢状态） ──────────────
+  function regionNode(name) {
+    if (typeof name !== 'string' || name === '') return null;
+    try { return document.querySelector('[data-stage-region="' + name.replace(/"/g, '') + '"]'); } catch (e) { return null; }
+  }
+  function appendBlock(html, region) {
+    var s = document.createElement('section');
+    s.className = 'stg-block';
+    if (typeof region === 'string' && region !== '') s.setAttribute('data-stage-region', region);
+    s.innerHTML = typeof html === 'string' ? html : '';
+    (document.body || document.documentElement).appendChild(s);
+  }
+  function setRegionBlock(region, html) {
+    var n = regionNode(region);
+    if (!n) return appendBlock(html, region);
+    n.innerHTML = typeof html === 'string' ? html : '';
+  }
+  function removeRegionBlock(region) {
+    var n = regionNode(region);
+    if (n && n.parentNode) n.parentNode.removeChild(n);
+  }
+
   cv.addEventListener('pointerdown', function (e) {
     if (P.mode === 'off') return;
+    if (forwardClick(e.clientX, e.clientY)) return;
     drawing = true;
     try { cv.setPointerCapture(e.pointerId); } catch (err) {}
     cur = { color: P.color, size: P.size, erase: P.mode === 'erase', pts: [[e.clientX, e.clientY]] };
@@ -209,6 +250,13 @@ window.__ModuleLoader__.load({
       count();
     } else if (d.cmd === 'capture') {
       capture({ auto: d.auto === true, requestId: d.requestId || null });
+    } else if (d.cmd === 'patch' && Array.isArray(d.ops)) {
+      for (var pi = 0; pi < d.ops.length; pi++) {
+        var po = d.ops[pi] || {};
+        if (po.op === 'append') appendBlock(po.html, po.region);
+        else if (po.op === 'set') setRegionBlock(po.region, po.html);
+        else if (po.op === 'remove') removeRegionBlock(po.region);
+      }
     } else if (d.cmd === 'load') {
       // 同一块板的演进：把父层保存的笔迹重新注入新板。
       strokes = Array.isArray(d.strokes) ? d.strokes : [];
@@ -304,6 +352,14 @@ window.__ModuleLoader__.load({
       }
     }
 
+    /** 把一条 op 作用到 HTML 字符串上（首装 / 重载走这条路）。 */
+    function applyOp(html, op) {
+      if (op.op === 'append') return appendFragment(html, op.html, op.region)
+      if (op.op === 'set') return patchRegion(html, op.region, op.html)
+      if (op.op === 'remove') return patchRegion(html, op.region, null)
+      return html
+    }
+
     /** 把同一 board id 的 stage_panel 调用按顺序折叠成一块板的 HTML。 */
     function composeBoard(calls) {
       if (!Array.isArray(calls) || calls.length === 0) return null
@@ -314,29 +370,43 @@ window.__ModuleLoader__.load({
         : calls.filter((c) => typeof c.board === 'string' && c.board === boardId)
       if (list.length === 0) return null
 
-      let html = null
+      let base = null          // 开板那次的文档（或第一条调用）
+      const ops = []           // 基准之后的增量：可以原地打进活着的 iframe，不必重载
       let title = null
+      let openCount = 0
       for (const call of list) {
-        const op = typeof call.op === 'string' && call.op !== '' ? call.op : (html === null ? 'open' : 'append')
+        const op = typeof call.op === 'string' && call.op !== '' ? call.op : (base === null ? 'open' : 'append')
         const frag = typeof call.html === 'string' ? call.html : null
         const region = typeof call.region === 'string' && call.region !== '' ? call.region : null
         if (typeof call.title === 'string' && call.title !== '') title = call.title
         if (op === 'open') {
-          if (frag !== null) html = frag
+          if (frag !== null) {
+            base = frag
+            ops.length = 0
+            openCount += 1
+          }
           continue
         }
-        if (html === null) {
-          html = frag === null ? null : frag
+        if (base === null) {
+          base = frag === null ? '' : frag
           continue
         }
-        if (op === 'append') {
-          if (frag !== null) html = appendFragment(html, frag, region)
-        } else if (op === 'set' || op === 'remove') {
-          html = patchRegion(html, region, op === 'set' ? frag : null)
-        }
+        ops.push({ op, region, html: frag })
       }
-      if (html === null) return null
-      return { board: boardId, title, html: ensureDocument(html) }
+      if (base === null) return null
+
+      const baseHtml = ensureDocument(base)
+      let html = baseHtml
+      for (const op of ops) html = applyOp(html, op)
+      return {
+        board: boardId,
+        title,
+        ops,
+        baseHtml,
+        html,
+        openCount,
+        signature: (boardId || 'adhoc') + '|' + openCount + '|' + ops.length,
+      }
     }
 
     function parseArgs(raw) {
@@ -406,7 +476,11 @@ window.__ModuleLoader__.load({
         // 新 iframe 载入时，runtime 会先报一次空笔迹（初始 count）；那一条必须丢掉，
         // 否则它会在 ready 触发的“还笔迹”之前把存下来的笔迹冲掉。
         const awaitingReadyRef = useRef(true)
-        const lastDocRef = useRef(null)
+        // 活着的 iframe 已经吃进去多少条 op（装载时烘进 HTML 的 + 之后 postMessage 打进去的）
+        const appliedRef = useRef(0)
+        const opsRef = useRef([])
+        const docRef = useRef({ key: null, html: null })
+        const [doc, setDoc] = useState(docRef.current)
         const [tool, setTool] = useState(toolRef.current)
         const [strokes, setStrokes] = useState(0)
         const [toast, setToast] = useState('')
@@ -417,12 +491,10 @@ window.__ModuleLoader__.load({
         const composed = composeBoard(latest.panels)
         const boardId = composed ? composed.board : null
         boardIdRef.current = boardId
-        const srcDoc = composed === null ? null : injectRuntime(composed.html)
         const boardTitle = (composed && composed.title) || (status && status.title) || '教学平面'
-        if (lastDocRef.current !== srcDoc) {
-          lastDocRef.current = srcDoc
-          awaitingReadyRef.current = true
-        }
+        opsRef.current = composed === null ? [] : composed.ops
+        const signature = composed === null ? 'none' : composed.signature
+        const srcDoc = doc.html
 
         // 输入框是否空闲。agent 主动截图只在空闲时替用户提交——否则会把人家正在写的
         // 草稿一起发出去。hook 必须在组件顶层调用，结果存进 ref 供消息监听器
@@ -543,11 +615,15 @@ window.__ModuleLoader__.load({
               } else if (d.type === 'ready') {
                 awaitingReadyRef.current = false
                 // iframe 刚载入：把当前工具状态推回去（用 ref 避免闭包过期），
-                // 并把这块板之前存下的笔迹与滚动位置还回去。
+                // 补上装载之后才到的增量，再把这块板之前存下的笔迹与滚动位置还回去。
                 const t = toolRef.current
                 post({ cmd: 'mode', value: t.mode })
                 post({ cmd: 'color', value: t.color })
                 post({ cmd: 'size', value: t.size })
+                const all = opsRef.current || []
+                const tail = all.slice(appliedRef.current)
+                appliedRef.current = all.length
+                if (tail.length > 0) post({ cmd: 'patch', ops: tail })
                 const id = boardIdRef.current
                 const rec = id ? boardsRef.current.get(id) : null
                 post({ cmd: 'load', strokes: (rec && rec.strokes) || [], scrollY: (rec && rec.scrollY) || 0 })
@@ -561,6 +637,35 @@ window.__ModuleLoader__.load({
           window.addEventListener('message', onMessage)
           return () => window.removeEventListener('message', onMessage)
         }, [])
+
+        useEffect(() => {
+          if (composed === null) {
+            if (docRef.current.key !== null) {
+              docRef.current = { key: null, html: null }
+              setDoc(docRef.current)
+            }
+            return
+          }
+          const key = composed.board + '#' + composed.openCount
+          // 同一份文档：不再换 srcdoc（换 = 整块重载），增量走 postMessage。
+          if (docRef.current.key === key) return
+          const next = { key, html: injectRuntime(composed.html) }
+          docRef.current = next
+          appliedRef.current = composed.ops.length   // 这份文档里已经烘进去了
+          awaitingReadyRef.current = true
+          setDoc(next)
+        }, [signature])
+
+        // 增量：新到的 op 原地打进活着的 iframe —— 不重载 → 板内状态、滚动、动画都不受影响。
+        useEffect(() => {
+          if (composed === null) return
+          if (docRef.current.key !== composed.board + '#' + composed.openCount) return
+          if (awaitingReadyRef.current) return       // 装载中：等 ready 统一同步
+          const tail = composed.ops.slice(appliedRef.current)
+          if (tail.length === 0) return
+          appliedRef.current = composed.ops.length
+          post({ cmd: 'patch', ops: tail })
+        }, [signature])
 
         // agent 主动截图：快照里出现未处理的 stage_snapshot 调用就拍一张。
         // 面板没挂载时不标记已处理，等它挂上再拍。
